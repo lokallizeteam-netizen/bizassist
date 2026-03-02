@@ -294,10 +294,10 @@ export default function InventoryProductEditScreen({ routeScope = "inventory" }:
 	const [reorderPointText, setReorderPointText] = useState("");
 	const [selectedModifierGroupIds, setSelectedModifierGroupIds] = useState<string[]>([]);
 	const [selectedAttributeSelections, setSelectedAttributeSelections] = useState<
-		Array<{ attributeId: string; isRequired?: boolean }>
+		{ attributeId: string; isRequired?: boolean }[]
 	>([]);
 	const [baselineAttributeSelections, setBaselineAttributeSelections] = useState<
-		Array<{ attributeId: string; isRequired?: boolean }>
+		{ attributeId: string; isRequired?: boolean }[]
 	>([]);
 
 	const [error, setError] = useState<string | null>(null);

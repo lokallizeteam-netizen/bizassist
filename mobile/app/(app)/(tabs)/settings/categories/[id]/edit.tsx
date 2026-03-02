@@ -16,6 +16,7 @@ import { BAIRetryButton } from "@/components/ui/BAIRetryButton";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout } from "@/components/settings/SettingsLayout";
 
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { categoriesApi } from "@/modules/categories/categories.api";
@@ -140,7 +141,10 @@ export function CategoryEditScreen({ mode = "settings" }: { mode?: CategoryFlowM
 				>
 					<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
 						<View style={styles.keyboardContent}>
-							<View style={[styles.screen, { backgroundColor: theme.colors.background }]}>
+							<SettingsScreenLayout
+								screenStyle={[styles.screen, { backgroundColor: theme.colors.background }]}
+								maxWidth={560}
+							>
 								<BAISurface style={[styles.card, { borderColor }]} padded bordered>
 									<BAIText variant='caption' muted>
 										Update category name or color. Archiving is managed in Category Details.
@@ -175,7 +179,7 @@ export function CategoryEditScreen({ mode = "settings" }: { mode?: CategoryFlowM
 										/>
 									)}
 								</BAISurface>
-							</View>
+							</SettingsScreenLayout>
 						</View>
 					</TouchableWithoutFeedback>
 				</KeyboardAvoidingView>

@@ -18,6 +18,7 @@ import { BAISearchBar } from "@/components/ui/BAISearchBar";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAISwitchRow } from "@/components/ui/BAISwitchRow";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout, SettingsSectionTitle } from "@/components/settings/SettingsLayout";
 
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { categoriesApi } from "@/modules/categories/categories.api";
@@ -226,12 +227,9 @@ export default function SettingsCategoryVisibilityScreen() {
 		<>
 			<Stack.Screen options={headerOptions} />
 			<BAIScreen tabbed padded={false} safeTop={false}>
-				<View style={styles.screen}>
-					<View style={[styles.content, contentMaxWidth ? { maxWidth: contentMaxWidth } : null]}>
-						<BAISurface style={[styles.card, { borderColor }]} padded bordered>
-							<View style={styles.header}>
-								<BAIText variant='title'>Manage Category Visibility</BAIText>
-							</View>
+				<SettingsScreenLayout screenStyle={styles.screen} maxWidth={contentMaxWidth}>
+					<BAISurface style={[styles.card, { borderColor }]} padded bordered>
+						<SettingsSectionTitle>Manage Category Visibility</SettingsSectionTitle>
 
 							{error ? (
 								<BAIText variant='caption' style={{ color: theme.colors.error }}>
@@ -324,9 +322,8 @@ export default function SettingsCategoryVisibilityScreen() {
 									</ScrollView>
 								)}
 							</View>
-						</BAISurface>
-					</View>
-				</View>
+					</BAISurface>
+				</SettingsScreenLayout>
 			</BAIScreen>
 		</>
 	);
@@ -334,23 +331,14 @@ export default function SettingsCategoryVisibilityScreen() {
 
 const styles = StyleSheet.create({
 	screen: {
-		flex: 1,
 		paddingBottom: 0,
 		paddingHorizontal: 14,
-	},
-	content: {
-		flex: 1,
-		width: "100%",
-		alignSelf: "center",
 	},
 	card: {
 		flex: 1,
 		width: "100%",
 		borderRadius: 18,
 		gap: 12,
-	},
-	header: {
-		gap: 4,
 	},
 	sectionHeader: {
 		paddingTop: 0,

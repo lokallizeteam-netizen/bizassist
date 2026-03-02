@@ -1,12 +1,11 @@
-import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Stack, useRouter } from "expo-router";
 import { useCallback } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { useTheme } from "react-native-paper";
 
+import { SettingsListRow, SettingsScreenLayout, SettingsSectionTitle } from "@/components/settings/SettingsLayout";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
-import { BAIText } from "@/components/ui/BAIText";
 import { useAppHeader } from "@/modules/navigation/useAppHeader";
 
 type CheckoutRow = {
@@ -15,42 +14,6 @@ type CheckoutRow = {
 	value?: string;
 	onPress?: () => void;
 };
-
-function Row({
-	item,
-	borderColor,
-	onSurface,
-	onSurfaceVariant,
-}: {
-	item: CheckoutRow;
-	borderColor: string;
-	onSurface: string;
-	onSurfaceVariant: string;
-}) {
-	return (
-		<Pressable
-			onPress={item.onPress}
-			disabled={!item.onPress}
-			style={({ pressed }) => [
-				styles.row,
-				{ borderBottomColor: borderColor, opacity: item.onPress ? 1 : 0.94 },
-				pressed && item.onPress ? styles.rowPressed : null,
-			]}
-		>
-			<BAIText variant='subtitle' style={{ color: onSurface }}>
-				{item.title}
-			</BAIText>
-			<View style={styles.rowRight}>
-				{item.value ? (
-					<BAIText variant='body' style={{ color: onSurfaceVariant }}>
-						{item.value}
-					</BAIText>
-				) : null}
-				{item.onPress ? <MaterialCommunityIcons name='chevron-right' size={24} color={onSurfaceVariant} /> : null}
-			</View>
-		</Pressable>
-	);
-}
 
 export default function CheckoutSettingsScreen() {
 	const router = useRouter();
@@ -86,46 +49,31 @@ export default function CheckoutSettingsScreen() {
 		<>
 			<Stack.Screen options={headerOptions} />
 			<BAIScreen tabbed padded={false} safeTop={false}>
-				<View style={styles.screen}>
+				<SettingsScreenLayout>
+					<SettingsSectionTitle>Checkout</SettingsSectionTitle>
 					<BAISurface bordered padded={false} style={styles.card}>
-						{rows.map((item) => (
-							<Row
+						{rows.map((item, index) => (
+							<SettingsListRow
 								key={item.key}
-								item={item}
+								title={item.title}
+								value={item.value}
+								onPress={item.onPress}
+								isLast={index === rows.length - 1}
 								borderColor={borderColor}
 								onSurface={onSurface}
 								onSurfaceVariant={onSurfaceVariant}
 							/>
 						))}
 					</BAISurface>
-				</View>
+				</SettingsScreenLayout>
 			</BAIScreen>
 		</>
 	);
 }
 
 const styles = StyleSheet.create({
-	screen: {
-		flex: 1,
-		padding: 12,
-	},
 	card: {
-		borderRadius: 16,
+		borderRadius: 18,
 		overflow: "hidden",
-	},
-	row: {
-		paddingHorizontal: 14,
-		paddingVertical: 14,
-		borderBottomWidth: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		gap: 12,
-	},
-	rowPressed: { opacity: 0.84 },
-	rowRight: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 8,
 	},
 });

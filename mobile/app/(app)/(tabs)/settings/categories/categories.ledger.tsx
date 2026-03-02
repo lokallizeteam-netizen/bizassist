@@ -21,6 +21,7 @@ import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAISearchBar } from "@/components/ui/BAISearchBar";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout, SettingsSectionTitle } from "@/components/settings/SettingsLayout";
 
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { categoriesApi } from "@/modules/categories/categories.api";
@@ -241,14 +242,14 @@ export function CategoriesLedgerScreen({
 			<Stack.Screen options={headerOptions} />
 			<BAIScreen tabbed padded={false} safeTop={false} safeBottom={false} style={styles.root}>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-					<View style={[styles.wrap, { paddingBottom: screenBottomPad }]}>
-						<View style={[styles.content, contentMaxWidth ? { maxWidth: contentMaxWidth } : null]}>
-							<BAISurface style={[styles.card, { borderColor }]} padded bordered>
-								<View style={styles.header}>
-									<BAIText variant='title'>Categories</BAIText>
-								</View>
+					<SettingsScreenLayout
+						screenStyle={{ paddingBottom: screenBottomPad }}
+						maxWidth={contentMaxWidth}
+					>
+						<BAISurface style={[styles.card, { borderColor }]} padded bordered>
+							<SettingsSectionTitle>Categories</SettingsSectionTitle>
 
-								<View style={styles.controls}>
+							<View style={styles.controls}>
 									<View style={styles.actionsRow}>
 										<BAIButton
 											variant='outline'
@@ -301,9 +302,9 @@ export function CategoriesLedgerScreen({
 										disabled={isUiDisabled}
 										countFormatter={(count) => formatCompactNumber(count, countryCode)}
 									/>
-								</View>
+							</View>
 
-								<View style={styles.listSection}>
+							<View style={styles.listSection}>
 									{query.isLoading ? (
 										<View style={styles.loading}>
 											<BAIActivityIndicator />
@@ -345,10 +346,9 @@ export function CategoriesLedgerScreen({
 									) : null}
 
 									{!query.isLoading ? list : null}
-								</View>
-							</BAISurface>
-						</View>
-					</View>
+							</View>
+						</BAISurface>
+					</SettingsScreenLayout>
 				</TouchableWithoutFeedback>
 			</BAIScreen>
 		</>
@@ -361,24 +361,9 @@ export default function CategoriesLedgerRoute() {
 
 const styles = StyleSheet.create({
 	root: { flex: 1 },
-	wrap: {
-		flex: 1,
-		paddingHorizontal: 12,
-	},
-	content: {
-		flex: 1,
-		width: "100%",
-		alignSelf: "center",
-	},
 	card: {
 		flex: 1,
 		borderRadius: 18,
-		gap: 10,
-	},
-	header: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
 		gap: 10,
 	},
 	actionsRow: {

@@ -12,7 +12,7 @@ export type ProductCreateDraft = {
 	categoryId: string;
 	categoryName: string;
 	modifierGroupIds: string[];
-	attributeSelections: Array<{ attributeId: string; isRequired?: boolean }>;
+	attributeSelections: { attributeId: string; isRequired?: boolean }[];
 
 	// ✅ unit (UoM)
 	unitId: string;

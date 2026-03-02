@@ -2,7 +2,7 @@
 // path: src/modules/categories/categoryPicker.contract.ts
 
 export const CATEGORY_PICKER_ROUTE = "/(app)/(tabs)/inventory/categories/picker" as const;
-export const CATEGORY_CREATE_ROUTE = "/(app)/(tabs)/settings/categories/create" as const;
+export const CATEGORY_CREATE_ROUTE = "/(app)/(tabs)/inventory/categories/create" as const;
 
 // Canonical selection return keys (MUST match screens reading them)
 export const CATEGORY_SELECTED_ID_KEY = "selectedCategoryId" as const;

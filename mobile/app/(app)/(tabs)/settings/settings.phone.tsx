@@ -4,13 +4,19 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet } from "react-native";
 import { useTheme } from "react-native-paper";
 
 import { BAIButton } from "@/components/ui/BAIButton";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
+import {
+	SettingsCircleIcon,
+	SettingsListRow,
+	SettingsScreenLayout,
+	SettingsSectionTitle,
+} from "@/components/settings/SettingsLayout";
 
 import { ConfirmActionModal } from "@/components/settings/ConfirmActionModal";
 import { useColorSchemeController } from "@/hooks/use-color-scheme";
@@ -23,62 +29,12 @@ type SettingsRowBase = {
 	key: string;
 	title: string;
 	subtitle?: string;
+	icon: MaterialIconName;
 	onPress?: () => void;
 	disabled?: boolean;
 };
 
-type SettingsRow = SettingsRowBase & { icon: MaterialIconName };
-
-function Row({
-	item,
-	borderColor,
-	onSurface,
-	onSurfaceVariant,
-	iconTint,
-}: {
-	item: SettingsRow;
-	borderColor: string;
-	onSurface: string;
-	onSurfaceVariant: string;
-	iconTint: string;
-}) {
-	const chevronVisible = !!item.onPress && !item.disabled;
-
-	return (
-		<Pressable
-			onPress={item.onPress}
-			disabled={!item.onPress || item.disabled}
-			style={({ pressed }) => [
-				styles.row,
-				{ borderBottomColor: borderColor, opacity: item.disabled ? 0.55 : 1 },
-				pressed && item.onPress ? styles.rowPressed : null,
-			]}
-		>
-			<View style={styles.rowLeft}>
-				<View style={[styles.iconCircle, { borderColor }]}>
-					<MaterialCommunityIcons name={item.icon} size={20} color={iconTint} />
-				</View>
-
-				<View style={styles.rowText}>
-					<BAIText variant='body' style={{ color: onSurface }}>
-						{item.title}
-					</BAIText>
-					{item.subtitle ? (
-						<BAIText variant='caption' style={{ color: onSurfaceVariant }}>
-							{item.subtitle}
-						</BAIText>
-					) : null}
-				</View>
-			</View>
-
-			{chevronVisible ? (
-				<View style={styles.rowRight}>
-					<MaterialCommunityIcons name='chevron-right' size={30} color={iconTint} />
-				</View>
-			) : null}
-		</Pressable>
-	);
-}
+type SettingsRow = SettingsRowBase;
 
 function modeLabel(mode: "system" | "light" | "dark") {
 	if (mode === "system") return "System";
@@ -116,11 +72,11 @@ export default function SettingsPhoneScreen() {
 				onPress: () => router.push("/(app)/(tabs)/settings/display-mode"),
 			},
 			{
-				key: "items",
-				title: "Items",
-				subtitle: "All items, services, and catalog definitions",
-				icon: "package-variant-closed",
-				onPress: () => router.push("/(app)/(tabs)/settings/items"),
+				key: "units",
+				title: "Units",
+				subtitle: "Manage units and measurements",
+				icon: "ruler-square",
+				onPress: () => router.push("/(app)/(tabs)/settings/units"),
 			},
 			{
 				key: "checkout",
@@ -186,20 +142,26 @@ export default function SettingsPhoneScreen() {
 
 	return (
 		<BAIScreen tabbed>
-			<View style={styles.screen}>
-				<BAIText variant='title' style={styles.title}>
-					Settings
-				</BAIText>
+			<SettingsScreenLayout>
+				<SettingsSectionTitle>Settings</SettingsSectionTitle>
 
 				<BAISurface style={styles.card} padded={false}>
-					{rows.map((item) => (
-						<Row
+					{rows.map((item, index) => (
+						<SettingsListRow
 							key={item.key}
-							item={item}
+							title={item.title}
+							subtitle={item.subtitle}
+							onPress={item.onPress}
+							disabled={item.disabled}
+							leading={
+								<SettingsCircleIcon borderColor={borderColor}>
+									<MaterialCommunityIcons name={item.icon} size={20} color={iconTint} />
+								</SettingsCircleIcon>
+							}
+							isLast={index === rows.length - 1}
 							borderColor={borderColor}
 							onSurface={onSurface}
 							onSurfaceVariant={onSurfaceVariant}
-							iconTint={iconTint}
 						/>
 					))}
 				</BAISurface>
@@ -213,7 +175,7 @@ export default function SettingsPhoneScreen() {
 						Settings are intentionally minimal in v1.
 					</BAIText>
 				</BAISurface>
-			</View>
+			</SettingsScreenLayout>
 
 			<ConfirmActionModal
 				visible={showLogoutConfirm}
@@ -231,33 +193,7 @@ export default function SettingsPhoneScreen() {
 }
 
 const styles = StyleSheet.create({
-	screen: { flex: 1, gap: 12, padding: 12 },
-	title: { marginTop: 2 },
-
 	card: { borderRadius: 18, overflow: "hidden" },
-
-	row: {
-		paddingHorizontal: 12,
-		paddingVertical: 12,
-		borderBottomWidth: 1,
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-	},
-	rowPressed: { opacity: 0.85 },
-
-	rowLeft: { flexDirection: "row", alignItems: "center", gap: 12, flex: 1, paddingRight: 10 },
-	iconCircle: {
-		width: 38,
-		height: 38,
-		borderRadius: 19,
-		alignItems: "center",
-		justifyContent: "center",
-		borderWidth: 1,
-	},
-	rowText: { flex: 1, gap: 2 },
-	rowRight: { alignItems: "center", justifyContent: "center" },
-
 	footer: { borderRadius: 18, gap: 10 },
 	hint: { opacity: 0.9 },
 });

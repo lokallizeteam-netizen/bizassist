@@ -10,6 +10,7 @@ import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
 
 import { formatDiscountSubtitle } from "@/modules/discounts/discounts.constants";
+import { INVENTORY_DISCOUNTS_CREATE_ROUTE } from "@/modules/discounts/discounts.navigation";
 import { useDiscountsPicker } from "@/modules/discounts/discounts.queries";
 import { setDiscountSelection } from "@/modules/discounts/discounts.selectionStore";
 import type { Discount, DiscountApplyTarget } from "@/modules/discounts/discounts.types";
@@ -127,7 +128,7 @@ export default function PosDiscountSelectScreen() {
 					<View style={styles.empty}>
 						<BAIText variant='title'>No discounts available</BAIText>
 						<BAIText variant='caption' muted style={styles.emptySub}>
-							Create a discount in Settings to apply at checkout.
+							Create a discount in Inventory to apply at checkout.
 						</BAIText>
 						<Button
 							mode='contained'
@@ -137,7 +138,7 @@ export default function PosDiscountSelectScreen() {
 									`&lineItemId=${encodeURIComponent(lineItemId ?? "")}` +
 									`&targetSubtotal=${encodeURIComponent(String(targetSubtotal))}`;
 								router.push({
-									pathname: "/(app)/(tabs)/settings/discounts/create",
+									pathname: INVENTORY_DISCOUNTS_CREATE_ROUTE,
 									params: { returnTo },
 								});
 							}}

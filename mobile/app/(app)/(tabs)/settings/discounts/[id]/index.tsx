@@ -19,6 +19,7 @@ import { BAIRetryButton } from "@/components/ui/BAIRetryButton";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout } from "@/components/settings/SettingsLayout";
 
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { useActiveBusinessMeta } from "@/modules/business/useActiveBusinessMeta";
@@ -166,8 +167,11 @@ export default function SettingsDiscountDetailScreen() {
 				contentContainerStyle={styles.scrollContent}
 				scrollProps={{ showsVerticalScrollIndicator: false }}
 			>
-				<View style={[styles.screen, { paddingBottom: tabBarHeight + 14 }]}>
-					<View style={styles.contentColumn}>
+				<SettingsScreenLayout
+					screenStyle={[styles.screen, { paddingBottom: tabBarHeight + 14 }]}
+					maxWidth={860}
+					columnStyle={styles.contentColumn}
+				>
 						{query.isLoading ? (
 							<BAISurface style={[styles.stateCard, { borderColor }]} padded bordered>
 								<View style={styles.headerBlock}>
@@ -397,8 +401,7 @@ export default function SettingsDiscountDetailScreen() {
 								</BAISurface>
 							</>
 						)}
-					</View>
-				</View>
+				</SettingsScreenLayout>
 			</BAIScreen>
 		</>
 	);
@@ -411,9 +414,6 @@ const styles = StyleSheet.create({
 		paddingHorizontal: 12,
 	},
 	contentColumn: {
-		width: "100%",
-		maxWidth: 860,
-		alignSelf: "center",
 		gap: 10,
 	},
 	headerBlock: { gap: 4 },

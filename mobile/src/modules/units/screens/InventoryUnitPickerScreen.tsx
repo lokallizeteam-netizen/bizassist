@@ -13,11 +13,12 @@
 //   3) Last section: remaining older units.
 
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import { Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useTheme } from "react-native-paper";
 
 import { BAIButton } from "@/components/ui/BAIButton";
@@ -25,7 +26,6 @@ import { BAICTAPillButton } from "@/components/ui/BAICTAButton";
 import { BAIRadioRow } from "@/components/ui/BAIRadioRow";
 import { BAIRetryButton } from "@/components/ui/BAIRetryButton";
 import { BAIScreen } from "@/components/ui/BAIScreen";
-import { BAISearchBar } from "@/components/ui/BAISearchBar";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
 
@@ -67,8 +67,6 @@ import { unitKeys, useUnitVisibilityMutation, useUnitVisibilityQuery } from "@/m
 import type { PrecisionScale, Unit } from "@/modules/units/units.types";
 import { applyVisibilityFilter, getEachUnit } from "@/modules/units/units.visibility";
 import { useUnitFlowBackGuard } from "@/modules/units/useUnitFlowBackGuard";
-import { FIELD_LIMITS } from "@/shared/fieldLimits";
-import { sanitizeSearchInput } from "@/shared/validation/sanitize";
 import { useInventoryHeader } from "@/modules/inventory/useInventoryHeader";
 
 const DEFAULT_PRECISION: PrecisionScale = 2;
@@ -202,7 +200,7 @@ export default function UnitPickerScreen({ routeScope }: { routeScope?: Inventor
 	);
 
 	// Search
-	const [q, setQ] = useState("");
+	const [q] = useState("");
 	const [isPullRefreshing, setIsPullRefreshing] = useState(false);
 
 	// nav lock
@@ -490,7 +488,11 @@ export default function UnitPickerScreen({ routeScope }: { routeScope?: Inventor
 		() => hasInboundSelection && hasSelectionChanged && selectionIsActive && !isUiDisabled,
 		[hasInboundSelection, hasSelectionChanged, isUiDisabled, selectionIsActive],
 	);
-	const cardTitle = "Units";
+	const borderColor = theme.colors.outlineVariant ?? theme.colors.outline;
+	const utilitySurfaceColor =
+		(theme.colors as any).surfaceVariant ?? (theme.dark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.035)");
+	const utilityPressedBg = theme.dark ? "rgba(255,255,255,0.1)" : "rgba(0,0,0,0.05)";
+	const utilityIconColor = theme.colors.onSurfaceVariant ?? theme.colors.onSurface;
 
 	// Header Navigation Governance:
 	// - Deterministic cancel is required here, so treat as "process" and bind Exit -> onCancel.
@@ -579,161 +581,150 @@ export default function UnitPickerScreen({ routeScope }: { routeScope?: Inventor
 							Retry
 						</BAIRetryButton>
 					</BAISurface>
-				) : (
-					<View style={{ flex: 1 }}>
-						<BAISurface style={[styles.card, { flex: 1 }]} padded>
-							<View style={styles.headerRow}>
-								<View style={styles.titleBlock}>
-									<BAIText variant='title'>{cardTitle}</BAIText>
+					) : (
+						<View style={{ flex: 1 }}>
+							<BAISurface style={[styles.card, { flex: 1 }]} padded>
+								<View style={styles.actionsRow}>
+									<BAIButton
+										variant='outline'
+										compact
+										disabled={isNavLocked || busy.isBusy}
+										onPress={openAddUnit}
+										style={styles.actionButton}
+										widthPreset='standard'
+										shape='pill'
+										intent='primary'
+									>
+										Add Unit
+									</BAIButton>
+
+									<BAICTAPillButton
+										intent='primary'
+										variant='solid'
+										compact
+										disabled={!saveEnabled || isNavLocked || busy.isBusy}
+										onPress={onSave}
+										style={styles.actionButton}
+									>
+										Save Unit
+									</BAICTAPillButton>
 								</View>
-							</View>
 
-							<View style={styles.inlineActionsRow}>
-								<BAIButton
-									variant='outline'
-									compact
-									disabled={isNavLocked || busy.isBusy}
-									onPress={guardedOnCancel}
-									style={styles.inlineAction}
-									widthPreset='standard'
-									shape='pill'
-									intent='neutral'
-								>
-									Cancel
-								</BAIButton>
-
-								<BAICTAPillButton
-									intent='primary'
-									variant='solid'
-									compact
-									disabled={!saveEnabled || isNavLocked || busy.isBusy}
-									onPress={onSave}
-									style={styles.inlineAction}
-								>
-									Save
-								</BAICTAPillButton>
-							</View>
-
-							<View style={styles.inlineActionsRow}>
-								<BAIButton
-									intent='primary'
-									variant='outline'
-									compact
-									disabled={isNavLocked || busy.isBusy}
+								<Pressable
 									onPress={openManageUnits}
-									style={styles.inlineAction}
-									widthPreset='standard'
+									disabled={isUiDisabled}
+									style={({ pressed }) => [
+										styles.utilityRow,
+										{ borderColor, backgroundColor: utilitySurfaceColor },
+										isUiDisabled && { opacity: 0.45 },
+										pressed && !isUiDisabled && { backgroundColor: utilityPressedBg },
+									]}
 								>
-									Manage Units
-								</BAIButton>
+									<View style={styles.utilityRowLeft}>
+										<View style={[styles.utilityIconWrap, { borderColor }]}>
+											<MaterialCommunityIcons name='cog-outline' size={18} color={utilityIconColor} />
+										</View>
+										<View style={styles.utilityCopy}>
+											<BAIText variant='caption' muted>
+												Manage Units
+											</BAIText>
+											<BAIText variant='subtitle'>Open unit management</BAIText>
+										</View>
+									</View>
+									<MaterialCommunityIcons name='chevron-right' size={22} color={utilityIconColor} />
+								</Pressable>
 
-								<BAIButton
-									intent='primary'
-									variant='outline'
-									compact
-									disabled={isNavLocked || busy.isBusy}
-									onPress={openAddUnit}
-									style={styles.inlineAction}
-									widthPreset='standard'
+								<ScrollView
+									style={styles.unitsScroll}
+									contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
+									showsVerticalScrollIndicator={false}
+									refreshControl={
+										<RefreshControl
+											refreshing={isPullRefreshing}
+											onRefresh={onRefresh}
+											tintColor={theme.colors.onSurface}
+											colors={[theme.colors.onSurface]}
+											progressBackgroundColor={theme.colors.surface}
+										/>
+									}
+									keyboardShouldPersistTaps='handled'
+									onTouchStart={Keyboard.dismiss}
 								>
-									Add Unit
-								</BAIButton>
-							</View>
+									<View style={styles.unitsListWrap}>
+										{governed.length === 0 ? (
+											<BAISurface style={styles.emptyCard} padded>
+												<BAIText variant='subtitle'>No units created yet.</BAIText>
+												<BAIText variant='caption' muted>
+													Create a unit to see it listed here.
+												</BAIText>
+											</BAISurface>
+										) : !hasSectionRows ? (
+											<BAISurface style={styles.emptyCard} padded>
+												<BAIText variant='subtitle'>No units found.</BAIText>
+												<BAIText variant='caption' muted>
+													Try another term or create a custom unit.
+												</BAIText>
+											</BAISurface>
+										) : (
+											<>
+												{countUnit ? renderUnitSection("Pinned Unit", [countUnit]) : null}
+												{renderUnitSection("Recent Units", recentUnits)}
+												{renderUnitSection("All Other Units", olderUnits)}
+											</>
+										)}
 
-							<View style={{ height: 12 }} />
-
-							<View
-								style={[
-									styles.searchBarWrap,
-									{ borderBottomColor: theme.colors.outlineVariant ?? theme.colors.outline },
-								]}
-							>
-								<BAISearchBar
-									value={q}
-									onChangeText={(v) => {
-										const cleaned = sanitizeSearchInput(v);
-										setQ(cleaned.length > FIELD_LIMITS.search ? cleaned.slice(0, FIELD_LIMITS.search) : cleaned);
-									}}
-									placeholder='Search units'
-									maxLength={FIELD_LIMITS.search}
-								/>
-							</View>
-
-							<ScrollView
-								style={styles.unitsScroll}
-								contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
-								showsVerticalScrollIndicator={false}
-								refreshControl={
-									<RefreshControl
-										refreshing={isPullRefreshing}
-										onRefresh={onRefresh}
-										tintColor={theme.colors.onSurface}
-										colors={[theme.colors.onSurface]}
-										progressBackgroundColor={theme.colors.surface}
-									/>
-								}
-								keyboardShouldPersistTaps='handled'
-								onTouchStart={Keyboard.dismiss}
-							>
-								<View style={styles.unitsListWrap}>
-									{governed.length === 0 ? (
-										<BAISurface style={styles.emptyCard} padded>
-											<BAIText variant='subtitle'>No units created yet.</BAIText>
-											<BAIText variant='caption' muted>
-												Create a unit to see it listed here.
-											</BAIText>
-										</BAISurface>
-									) : !hasSectionRows ? (
-										<BAISurface style={styles.emptyCard} padded>
-											<BAIText variant='subtitle'>No units found.</BAIText>
-											<BAIText variant='caption' muted>
-												Try another term or create a custom unit.
-											</BAIText>
-										</BAISurface>
-									) : (
-										<>
-											{countUnit ? (
-												<View style={styles.sectionBlock}>
-													<View style={styles.sectionRows}>{renderUnitRow(countUnit)}</View>
-												</View>
-											) : null}
-											{renderUnitSection("Recent Units", recentUnits)}
-											{renderUnitSection("All Other Units", olderUnits)}
-										</>
-									)}
-								</View>
-							</ScrollView>
-						</BAISurface>
-					</View>
-				)}
+									</View>
+								</ScrollView>
+							</BAISurface>
+						</View>
+					)}
 			</BAIScreen>
 		</>
 	);
 }
 
 const styles = StyleSheet.create({
-	card: { marginHorizontal: 16, marginTop: 0, borderRadius: 24 },
-	headerRow: {
+	card: { marginHorizontal: 16, marginTop: 0, borderRadius: 24, gap: 12 },
+	actionsRow: {
+		flexDirection: "row",
+		alignItems: "center",
+		gap: 12,
+	},
+	actionButton: { flex: 1 },
+	utilityRow: {
+		borderWidth: 1,
+		borderRadius: 16,
+		paddingVertical: 10,
+		paddingHorizontal: 12,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",
 		gap: 12,
 	},
-	titleBlock: { flex: 1 },
-	inlineActionsRow: {
-		marginTop: 10,
+	utilityRowLeft: {
 		flexDirection: "row",
 		alignItems: "center",
-		gap: 12,
+		gap: 10,
+		flex: 1,
+		minWidth: 0,
 	},
-	inlineAction: { flex: 1 },
-	searchBarWrap: {
-		paddingBottom: 8,
+	utilityIconWrap: {
+		width: 34,
+		height: 34,
+		borderRadius: 17,
+		borderWidth: 1,
+		alignItems: "center",
+		justifyContent: "center",
+	},
+	utilityCopy: {
+		flex: 1,
+		minWidth: 0,
+		gap: 1,
 	},
 	unitsScroll: { flex: 1 },
-	unitsListWrap: { paddingBottom: 6, gap: 6 },
+	unitsListWrap: { paddingBottom: 6, gap: 8 },
 	innerRowWrap: { paddingTop: 6 },
-	sectionBlock: { paddingTop: 4 },
+	sectionBlock: { paddingTop: 4, gap: 6 },
 	sectionRows: { paddingTop: 0 },
 	emptyCard: { borderRadius: 18, marginTop: 4 },
 	state: { marginHorizontal: 18, borderRadius: 18 },

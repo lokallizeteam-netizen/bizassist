@@ -47,7 +47,7 @@ export type ProductAttributeAssignment = {
 };
 
 export type ReplaceProductAttributesInput = {
-	attributes: Array<{ attributeId: string; isRequired?: boolean }>;
+	attributes: { attributeId: string; isRequired?: boolean }[];
 };
 
 export type SelectedAttributeSnapshot = {

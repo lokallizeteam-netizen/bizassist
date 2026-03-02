@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout, SettingsSectionTitle } from "@/components/settings/SettingsLayout";
 import { BAIRetryButton } from "@/components/ui/BAIRetryButton";
 import { BAIHeader } from "@/components/ui/BAIHeader";
 import { BAIGroupTabs, type BAIGroupTab } from "@/components/ui/BAIGroupTabs";
@@ -182,10 +183,13 @@ export function ModifiersLedgerScreen({
 					)}
 				/>
 				<TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
-					<View style={styles.wrap}>
-						<View style={[styles.content, layout === "tablet" ? styles.tablet : null]}>
-							<BAISurface style={[styles.card, { borderColor }]} padded bordered>
-								<View style={styles.controls}>
+					<SettingsScreenLayout
+						screenStyle={styles.layoutScreen}
+						maxWidth={layout === "tablet" ? 720 : undefined}
+					>
+						<BAISurface style={[styles.card, { borderColor }]} padded bordered>
+							<SettingsSectionTitle>Modifiers</SettingsSectionTitle>
+							<View style={styles.controls}>
 									<BAISearchBar
 										value={search}
 										onChangeText={(value) => {
@@ -204,9 +208,9 @@ export function ModifiersLedgerScreen({
 											countFormatter={(count) => formatCompactNumber(count, countryCode)}
 										/>
 									</View>
-								</View>
+							</View>
 
-								<View style={styles.listSection}>
+							<View style={styles.listSection}>
 									{groupsQuery.isLoading ? (
 										<View style={styles.stateWrap}>
 											<BAIText variant='body'>Loading modifier sets...</BAIText>
@@ -245,10 +249,9 @@ export function ModifiersLedgerScreen({
 											showsVerticalScrollIndicator={false}
 										/>
 									)}
-								</View>
-							</BAISurface>
-						</View>
-					</View>
+							</View>
+						</BAISurface>
+					</SettingsScreenLayout>
 				</TouchableWithoutFeedback>
 			</BAIScreen>
 		</>
@@ -261,9 +264,7 @@ export default function ModifiersLedgerRoute() {
 
 const styles = StyleSheet.create({
 	root: { flex: 1 },
-	wrap: { flex: 1, paddingHorizontal: 8, paddingTop: 0 },
-	content: { flex: 1, width: "100%", alignSelf: "center" },
-	tablet: { maxWidth: 720 },
+	layoutScreen: { paddingHorizontal: 8, paddingTop: 0 },
 	card: { flex: 1, borderRadius: 18, gap: 6 },
 	controls: { gap: 4, paddingBottom: 2 },
 	groupTabsWrap: {

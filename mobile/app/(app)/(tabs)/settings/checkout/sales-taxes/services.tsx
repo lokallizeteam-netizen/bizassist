@@ -190,7 +190,7 @@ export default function SalesTaxServicesScreen() {
 						) : servicesQuery.isError ? (
 							<View style={styles.feedbackWrap}>
 								<BAIText variant='body' style={{ color: textMutedColor }}>
-									Couldn't load services right now.
+									Could not load services right now.
 								</BAIText>
 								<BAIButton
 									variant='soft'

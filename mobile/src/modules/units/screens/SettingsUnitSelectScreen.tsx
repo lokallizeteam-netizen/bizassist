@@ -1,33 +1,20 @@
-// BizAssist_mobile
-// path: app/(app)/(tabs)/inventory/units/select.tsx
-//
-// Add Unit (Category-specific) — catalog enablement
-// IMPORTANT:
-// - This screen uses catalog categories (COUNT is UI-only).
-// - Count units default to precision 0 (1) unless overridden.
-// - The server should return category COUNT for count-like units.
-
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
-import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 
-import {
-	mapInventoryRouteToScope,
-	resolveInventoryRouteScope,
-	type InventoryRouteScope,
-} from "@/modules/inventory/navigation.scope";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
-import { BAIButton } from "@/components/ui/BAIButton";
 import { BAICTAButton, BAICTAPillButton } from "@/components/ui/BAICTAButton";
 import { BAIRadioRow } from "@/components/ui/BAIRadioRow";
-
+import { BAIButton } from "@/components/ui/BAIButton";
 import { BAIDivider } from "@/components/ui/BAIDivider";
+import { useAppHeader } from "@/modules/navigation/useAppHeader";
+
 import { useAppBusy } from "@/hooks/useAppBusy";
-import { useProcessExitGuard } from "@/modules/navigation/useProcessExitGuard";
+import { UNIT_CATALOG, type UnitCategory as CatalogUnitCategory, type UnitItem } from "@/features/units/unitCatalog";
 import { unitsApi } from "@/modules/units/units.api";
 import { syncUnitListCaches } from "@/modules/units/units.cache";
 import { unitKeys } from "@/modules/units/units.queries";
@@ -37,25 +24,17 @@ import {
 	DRAFT_ID_KEY,
 	RETURN_TO_KEY,
 	UNIT_CONTEXT_PRODUCT_TYPE_KEY,
-	UNIT_CUSTOM_CREATE_ROUTE,
-	type UnitProductType,
-	parseUnitSelectionParams,
 	UNIT_CREATE_CATEGORY_KEY,
-	UNIT_ADD_ROUTE,
 } from "@/modules/units/unitPicker.contract";
-import {
-	ADD_ITEM_ROUTE,
-	clearUnitSelectionParams,
-	CREATE_ITEM_ROUTE,
-	replaceToReturnTo,
-	resolveReturnTo,
-	SETTINGS_ITEMS_SERVICES_ADD_ITEM_ROUTE,
-	SETTINGS_ITEMS_SERVICES_CREATE_ITEM_ROUTE,
-} from "@/modules/units/units.navigation";
+import { clearUnitSelectionParams, replaceToReturnTo } from "@/modules/units/units.navigation";
 import { useUnitFlowBackGuard } from "@/modules/units/useUnitFlowBackGuard";
 
-import { UNIT_CATALOG, type UnitCategory as CatalogUnitCategory, type UnitItem } from "@/features/units/unitCatalog";
-import { useInventoryHeader } from "@/modules/inventory/useInventoryHeader";
+import {
+	SETTINGS_UNIT_ADD_ROUTE,
+	SETTINGS_UNIT_CUSTOM_CREATE_ROUTE,
+	useSettingsUnitFlowContext,
+	useUnitNavLock,
+} from "@/modules/units/screens/settingsUnitFlow.shared";
 
 const DEFAULT_PRECISION: PrecisionScale = 2;
 const PRECISION_OPTIONS: PrecisionScale[] = [0, 1, 2, 3, 4, 5];
@@ -71,32 +50,23 @@ function categoryDefaultPrecision(category: CatalogUnitCategory): PrecisionScale
 	return DEFAULT_PRECISION;
 }
 
-function categoryMaxPrecision(category: CatalogUnitCategory): PrecisionScale {
-	if (category === "COUNT") return 5;
+function categoryMaxPrecision(): PrecisionScale {
 	return 5;
-}
-
-function normalize(v: unknown): string {
-	return typeof v === "string" ? v.trim() : "";
-}
-
-function toProductType(raw: unknown): UnitProductType {
-	return normalize(raw) === "SERVICE" ? "SERVICE" : "PHYSICAL";
 }
 
 function toNumberOrNull(value: unknown): number | null {
 	if (typeof value === "number" && Number.isFinite(value)) return value;
 	if (typeof value === "string") {
-		const n = Number(value);
-		return Number.isFinite(n) ? n : null;
+		const number = Number(value);
+		return Number.isFinite(number) ? number : null;
 	}
 	return null;
 }
 
 function clampPrecision(raw: unknown, fallback: PrecisionScale = DEFAULT_PRECISION): PrecisionScale {
-	const n = toNumberOrNull(raw);
-	const x = Number.isFinite(n as number) ? Math.max(0, Math.min(5, Math.trunc(n as number))) : fallback;
-	return x as PrecisionScale;
+	const number = toNumberOrNull(raw);
+	const value = Number.isFinite(number as number) ? Math.max(0, Math.min(5, Math.trunc(number as number))) : fallback;
+	return value as PrecisionScale;
 }
 
 function precisionSuffix(scale: PrecisionScale): string {
@@ -104,13 +74,13 @@ function precisionSuffix(scale: PrecisionScale): string {
 	return `(.${"0".repeat(Math.min(5, Math.max(1, scale)))})`;
 }
 
-function categoryLabel(cat: CatalogUnitCategory): string {
-	if (cat === "COUNT") return "Count";
-	if (cat === "WEIGHT") return "Weight";
-	if (cat === "VOLUME") return "Volume";
-	if (cat === "LENGTH") return "Length";
-	if (cat === "AREA") return "Area";
-	if (cat === "TIME") return "Time";
+function categoryLabel(category: CatalogUnitCategory): string {
+	if (category === "COUNT") return "Count";
+	if (category === "WEIGHT") return "Weight";
+	if (category === "VOLUME") return "Volume";
+	if (category === "LENGTH") return "Length";
+	if (category === "AREA") return "Area";
+	if (category === "TIME") return "Time";
 	return "Category";
 }
 
@@ -122,73 +92,47 @@ function normalizeCatalogCategory(raw: unknown): CatalogUnitCategory | null {
 	return allowed.includes(normalized as CatalogUnitCategory) ? (normalized as CatalogUnitCategory) : null;
 }
 
-function normKey(s: string): string {
-	return s.trim().toLowerCase().replace(/\s+/g, " ");
-}
-
-function catalogToUnitCategory(cat: CatalogUnitCategory): Unit["category"] {
-	return cat;
+function normalizedKey(value: string): string {
+	return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
 function resolveCatalogToExisting(governedUnits: Unit[], item: UnitItem): Unit | null {
-	const sym = normKey(item.symbol);
-	const name = normKey(item.name);
-	const expectedCategory = catalogToUnitCategory(item.category);
-	const eligible = governedUnits.filter((u) => u.category === expectedCategory);
+	const symbol = normalizedKey(item.symbol);
+	const name = normalizedKey(item.name);
+	const eligible = governedUnits.filter((unit) => unit.category === item.category);
 
-	const byAbbr = eligible.find((u) => normKey(u.abbreviation ?? "") === sym) ?? null;
-	if (byAbbr) return byAbbr;
+	const byAbbreviation = eligible.find((unit) => normalizedKey(unit.abbreviation ?? "") === symbol) ?? null;
+	if (byAbbreviation) return byAbbreviation;
 
-	const byName = eligible.find((u) => normKey(u.name) === name) ?? null;
-	return byName;
+	return eligible.find((unit) => normalizedKey(unit.name) === name) ?? null;
 }
 
-export default function UnitSelectScreen({ routeScope }: { routeScope?: InventoryRouteScope } = {}) {
+export default function SettingsUnitSelectScreen() {
 	const router = useRouter();
 	const navigation = useNavigation();
-	const params = useLocalSearchParams();
 	const queryClient = useQueryClient();
 	const { withBusy, busy } = useAppBusy();
-
-	const inbound = useMemo(() => parseUnitSelectionParams(params as any), [params]);
-
-	const draftId = inbound.draftId || normalize((params as any)[DRAFT_ID_KEY]) || "";
-	const fallbackReturnTo = useMemo(() => {
-		if (routeScope === "settings-items-services") {
-			return draftId ? SETTINGS_ITEMS_SERVICES_CREATE_ITEM_ROUTE : SETTINGS_ITEMS_SERVICES_ADD_ITEM_ROUTE;
-		}
-		return draftId ? CREATE_ITEM_ROUTE : ADD_ITEM_ROUTE;
-	}, [draftId, routeScope]);
-	const returnTo = resolveReturnTo(params as Record<string, unknown>, fallbackReturnTo);
-	const effectiveRouteScope = useMemo(() => routeScope ?? resolveInventoryRouteScope(returnTo), [routeScope, returnTo]);
-	const toScopedRoute = useCallback(
-		(route: string) => mapInventoryRouteToScope(route, effectiveRouteScope),
-		[effectiveRouteScope],
-	);
-	const productType = useMemo(() => toProductType((params as any)[UNIT_CONTEXT_PRODUCT_TYPE_KEY]), [params]);
+	const { params, inbound, returnTo, draftId, productType } = useSettingsUnitFlowContext();
 
 	const category = useMemo<CatalogUnitCategory>(() => {
-		const raw = normalizeCatalogCategory((params as any)[UNIT_CREATE_CATEGORY_KEY]);
-		if (raw) return raw;
+		const fromParams = normalizeCatalogCategory((params as any)[UNIT_CREATE_CATEGORY_KEY]);
+		if (fromParams) return fromParams;
 
-		const parsed = normalizeCatalogCategory(inbound.createUnitCategory);
-		if (parsed) return parsed;
+		const fromInbound = normalizeCatalogCategory(inbound.createUnitCategory);
+		if (fromInbound) return fromInbound;
 
 		return "COUNT";
 	}, [inbound.createUnitCategory, params]);
 	const unitGroupLabel = categoryLabel(category);
-	const defaultCategoryPrecision = categoryDefaultPrecision(category);
-	const maxCategoryPrecision = categoryMaxPrecision(category);
-	const maxAllowedPrecision: PrecisionScale = maxCategoryPrecision;
-
-	const defaultPrecision = defaultCategoryPrecision;
+	const defaultPrecision = categoryDefaultPrecision(category);
+	const maxAllowedPrecision = categoryMaxPrecision();
 	const [selectedPrecision, setSelectedPrecision] = useState<PrecisionScale>(() =>
 		clampPrecision(
 			(params as any).selectedUnitPrecisionScale ?? inbound.selectedUnitPrecisionScale ?? defaultPrecision,
 			defaultPrecision,
 		),
 	);
-	const precisionOptions: PrecisionScale[] = PRECISION_OPTIONS.filter((p) => p <= maxAllowedPrecision);
+	const precisionOptions = PRECISION_OPTIONS.filter((precision) => precision <= maxAllowedPrecision);
 
 	useEffect(() => {
 		if (selectedPrecision > maxAllowedPrecision) {
@@ -199,13 +143,13 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 	const unitsQuery = useQuery<Unit[]>({
 		queryKey: unitKeys.list({ includeArchived: false }),
 		queryFn: () => unitsApi.listUnits({ includeArchived: false }),
-		staleTime: 30_000,
+		staleTime: 300_000,
 	});
 
-	const governed = useMemo(() => (unitsQuery.data ?? []).filter((u) => u.isActive), [unitsQuery.data]);
+	const governed = useMemo(() => (unitsQuery.data ?? []).filter((unit) => unit.isActive), [unitsQuery.data]);
 
 	const catalogUnits = useMemo(() => {
-		const list = UNIT_CATALOG.filter((u) => u.category === category);
+		const list = UNIT_CATALOG.filter((unit) => unit.category === category);
 		if (category !== "COUNT") return list;
 
 		return [...list].sort((a, b) => {
@@ -216,14 +160,14 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 	}, [category]);
 
 	const availableCatalogUnits = useMemo(
-		() => (catalogUnits as UnitItem[]).filter((u) => !resolveCatalogToExisting(governed, u)),
+		() => catalogUnits.filter((item) => !resolveCatalogToExisting(governed, item)),
 		[catalogUnits, governed],
 	);
 
 	const defaultCatalogId = useMemo(() => {
 		if (category === "COUNT") {
-			const countUnit = availableCatalogUnits.find((u) => u.id === COUNT_CATALOG_ID);
-			if (countUnit) return countUnit.id;
+			const eachUnit = availableCatalogUnits.find((item) => item.id === COUNT_CATALOG_ID);
+			if (eachUnit) return eachUnit.id;
 		}
 		return availableCatalogUnits[0]?.id ?? "";
 	}, [availableCatalogUnits, category]);
@@ -235,29 +179,18 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 			setSelectedCatalogId("");
 			return;
 		}
-		const stillExists = availableCatalogUnits.some((u) => u.id === selectedCatalogId);
-		if (!stillExists) setSelectedCatalogId(defaultCatalogId);
+
+		if (!availableCatalogUnits.some((item) => item.id === selectedCatalogId)) {
+			setSelectedCatalogId(defaultCatalogId);
+		}
 	}, [availableCatalogUnits, defaultCatalogId, selectedCatalogId]);
 
-	const navLockRef = useRef(false);
-	const [isNavLocked, setIsNavLocked] = useState(false);
-	const lockNav = useCallback((ms = 650) => {
-		if (navLockRef.current) return false;
-		navLockRef.current = true;
-		setIsNavLocked(true);
-		setTimeout(() => {
-			navLockRef.current = false;
-			setIsNavLocked(false);
-		}, ms);
-		return true;
-	}, []);
-
+	const exitRef = useRef(false);
+	const { isNavLocked, lockNav } = useUnitNavLock();
 	const isUiDisabled = busy.isBusy || isNavLocked;
 
-	const exitRef = useRef(false);
-
 	const selectedCatalogItem = useMemo(
-		() => availableCatalogUnits.find((u) => u.id === selectedCatalogId) ?? null,
+		() => availableCatalogUnits.find((item) => item.id === selectedCatalogId) ?? null,
 		[availableCatalogUnits, selectedCatalogId],
 	);
 
@@ -268,7 +201,7 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 		exitRef.current = true;
 		clearUnitSelectionParams(router as any);
 		router.replace({
-			pathname: toScopedRoute(UNIT_ADD_ROUTE) as any,
+			pathname: SETTINGS_UNIT_ADD_ROUTE as any,
 			params: {
 				[RETURN_TO_KEY]: returnTo,
 				[DRAFT_ID_KEY]: draftId || undefined,
@@ -277,8 +210,7 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 				selectedUnitPrecisionScale: String(selectedPrecision),
 			} as any,
 		});
-	}, [category, draftId, isUiDisabled, lockNav, productType, returnTo, router, selectedPrecision, toScopedRoute]);
-	const guardedOnCancel = useProcessExitGuard(onCancel, false);
+	}, [category, draftId, isUiDisabled, lockNav, productType, returnTo, router, selectedPrecision]);
 
 	const openCustomCreate = useCallback(() => {
 		if (isUiDisabled) return;
@@ -286,7 +218,7 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 
 		exitRef.current = true;
 		router.replace({
-			pathname: toScopedRoute(UNIT_CUSTOM_CREATE_ROUTE) as any,
+			pathname: SETTINGS_UNIT_CUSTOM_CREATE_ROUTE as any,
 			params: {
 				[RETURN_TO_KEY]: returnTo,
 				[DRAFT_ID_KEY]: draftId || undefined,
@@ -294,7 +226,7 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 				[UNIT_CREATE_CATEGORY_KEY]: "CUSTOM",
 			} as any,
 		});
-	}, [draftId, isUiDisabled, lockNav, productType, returnTo, router, toScopedRoute]);
+	}, [draftId, isUiDisabled, lockNav, productType, returnTo, router]);
 
 	const updateUnitCache = useCallback(
 		(unit: Unit) => {
@@ -308,13 +240,12 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 		if (!selectedCatalogItem) return;
 
 		await withBusy("Saving unit...", async () => {
-			const catalogItem = selectedCatalogItem as UnitItem;
-			const existing = resolveCatalogToExisting(governed, catalogItem);
+			const existing = resolveCatalogToExisting(governed, selectedCatalogItem);
 			const unit =
 				existing ??
 				(await unitsApi.enableCatalogUnit({
 					intent: "ENABLE_CATALOG",
-					catalogId: catalogItem.id,
+					catalogId: selectedCatalogItem.id,
 					precisionScale: selectedPrecision,
 				}));
 
@@ -350,16 +281,13 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 		withBusy,
 	]);
 
-	// Header Navigation Governance:
-	// - This is a "process" screen (intentful flow). Exit cancels intent deterministically via onCancel.
-	const headerOptions = useInventoryHeader("process", {
+	const headerOptions = useAppHeader("process", {
 		title: "Add Unit",
 		disabled: isUiDisabled,
-		onExit: guardedOnCancel,
-		exitFallbackRoute: "/(app)/(tabs)/inventory",
+		onExit: onCancel,
 	});
 
-	useUnitFlowBackGuard(navigation, exitRef, guardedOnCancel);
+	useUnitFlowBackGuard(navigation, exitRef, onCancel);
 
 	return (
 		<>
@@ -383,7 +311,7 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 						<BAIButton
 							variant='outline'
 							compact
-							onPress={guardedOnCancel}
+							onPress={onCancel}
 							disabled={isUiDisabled}
 							style={styles.inlineCancel}
 							shape='pill'
@@ -417,12 +345,12 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 								All units in this category are already enabled.
 							</BAIText>
 						) : (
-							availableCatalogUnits.map((u) => (
-								<View key={u.id} style={styles.rowWrap}>
+							availableCatalogUnits.map((item) => (
+								<View key={item.id} style={styles.rowWrap}>
 									<BAIRadioRow
-										title={`${u.name}   (${u.symbol})`}
-										selected={selectedCatalogId === u.id}
-										onPress={() => setSelectedCatalogId(u.id)}
+										title={`${item.name}   (${item.symbol})`}
+										selected={selectedCatalogId === item.id}
+										onPress={() => setSelectedCatalogId(item.id)}
 									/>
 								</View>
 							))
@@ -439,15 +367,18 @@ export default function UnitSelectScreen({ routeScope }: { routeScope?: Inventor
 
 							<View style={{ height: 8 }} />
 
-							{precisionOptions.map((p) => {
-								const suffix = precisionSuffix(p);
-								const label = p === 0 ? "Whole units (1)" : `${p} decimal${p === 1 ? "" : "s"} ${suffix}`;
+							{precisionOptions.map((precision) => {
+								const suffix = precisionSuffix(precision);
+								const label =
+									precision === 0
+										? "Whole units (1)"
+										: `${precision} decimal${precision === 1 ? "" : "s"} ${suffix}`;
 								return (
-									<View key={String(p)} style={styles.rowWrap}>
+									<View key={String(precision)} style={styles.rowWrap}>
 										<BAIRadioRow
 											title={label}
-											selected={selectedPrecision === p}
-											onPress={() => setSelectedPrecision(p)}
+											selected={selectedPrecision === precision}
+											onPress={() => setSelectedPrecision(precision)}
 										/>
 									</View>
 								);

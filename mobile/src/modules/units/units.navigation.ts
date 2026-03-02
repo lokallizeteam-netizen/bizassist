@@ -16,11 +16,10 @@ import {
 
 export const CREATE_ITEM_ROUTE = "/(app)/(tabs)/inventory/products/create" as const;
 export const ADD_ITEM_ROUTE = "/(app)/(tabs)/inventory/add-item" as const;
-export const SETTINGS_ITEMS_SERVICES_CREATE_ITEM_ROUTE =
-	"/(app)/(tabs)/settings/items-services/products/create" as const;
-export const SETTINGS_ITEMS_SERVICES_ADD_ITEM_ROUTE = "/(app)/(tabs)/settings/items-services/add-item" as const;
 export const UNITS_INDEX_ROUTE = "/(app)/(tabs)/inventory/units" as const;
 export const SETTINGS_UNITS_ROUTE = "/(app)/(tabs)/settings/units" as const;
+export const SETTINGS_ITEMS_SERVICES_CREATE_ITEM_ROUTE = SETTINGS_UNITS_ROUTE;
+export const SETTINGS_ITEMS_SERVICES_ADD_ITEM_ROUTE = SETTINGS_UNITS_ROUTE;
 
 type RouterLike = {
 	back: () => void;
@@ -47,8 +46,6 @@ const ALLOWED_RETURN_TO = new Set<string>([
 const ALLOWED_RETURN_TO_PATTERNS: RegExp[] = [
 	/^\/\(app\)\/\(tabs\)\/inventory\/products\/[^/]+$/,
 	/^\/\(app\)\/\(tabs\)\/inventory\/products\/[^/]+\/edit$/,
-	/^\/\(app\)\/\(tabs\)\/settings\/items-services\/products\/[^/]+$/,
-	/^\/\(app\)\/\(tabs\)\/settings\/items-services\/products\/[^/]+\/edit$/,
 ];
 
 function isAllowedReturnTo(route: string): boolean {

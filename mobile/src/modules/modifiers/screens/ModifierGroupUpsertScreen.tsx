@@ -430,7 +430,7 @@ export function ModifierGroupUpsertScreen({ mode, intent }: Props) {
 	const [sharedAvailabilitySelectedGroupIds, setSharedAvailabilitySelectedGroupIds] = useState<string[]>([]);
 	const [sharedAvailabilityRowKey, setSharedAvailabilityRowKey] = useState<string>("");
 	const [sharedAvailabilityOptionId, setSharedAvailabilityOptionId] = useState<string>("");
-	const [sharedAvailabilityNextIsSoldOut, setSharedAvailabilityNextIsSoldOut] = useState<boolean>(false);
+	const [sharedAvailabilityNextIsSoldOut] = useState<boolean>(false);
 	const [deleteRevealKey, setDeleteRevealKey] = useState<string | null>(null);
 	const [deleteControlVisibleKeys, setDeleteControlVisibleKeys] = useState<Set<string>>(() => new Set());
 	const [modifiersListHeight, setModifiersListHeight] = useState(0);
@@ -912,34 +912,6 @@ export function ModifierGroupUpsertScreen({ mode, intent }: Props) {
 		withBusy,
 	]);
 
-	const onToggleOptionSoldOut = useCallback(
-		(row: ModifierOptionDraft) => {
-			const nextIsSoldOut = !Boolean(row.isSoldOut);
-			if (!row.id) {
-				setRowSoldOutByKey(row.key, nextIsSoldOut);
-				return;
-			}
-
-			withBusy("Checking modifier sets...", async () => {
-				const preview = await modifiersApi.getSharedAvailability(row.id!);
-				if ((preview.groups ?? []).length <= 1) {
-					await modifiersApi.updateOption(row.id!, { isSoldOut: nextIsSoldOut });
-					setRowSoldOutByKey(row.key, nextIsSoldOut);
-					showSuccess(`This modifier has been marked as ${nextIsSoldOut ? "sold out" : "available"}`);
-					return;
-				}
-
-				setSharedAvailability(preview);
-				setSharedAvailabilitySelectedGroupIds(preview.groups.map((entry) => entry.modifierGroupId));
-				setSharedAvailabilityRowKey(row.key);
-				setSharedAvailabilityOptionId(row.id!);
-				setSharedAvailabilityNextIsSoldOut(nextIsSoldOut);
-				setSharedAvailabilityOpen(true);
-			});
-		},
-		[setRowSoldOutByKey, showSuccess, withBusy],
-	);
-
 	const onToggleDeleteReveal = useCallback(
 		(rowKey: string) => {
 			if (deleteRevealKey === rowKey) {
@@ -1148,6 +1120,7 @@ export function ModifierGroupUpsertScreen({ mode, intent }: Props) {
 		options,
 		queryClient,
 		router,
+		exitReturnTo,
 		returnDraftId,
 		returnSelection.selectedModifierGroupIds,
 		selectionType,

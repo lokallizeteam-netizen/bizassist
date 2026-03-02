@@ -22,6 +22,7 @@ import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISearchBar } from "@/components/ui/BAISearchBar";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout, SettingsSectionTitle } from "@/components/settings/SettingsLayout";
 
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { useActiveBusinessMeta } from "@/modules/business/useActiveBusinessMeta";
@@ -352,69 +353,69 @@ export function DiscountsLedgerScreen({
 
 			<BAIScreen tabbed padded={false} safeTop={false} safeBottom={false} style={styles.root}>
 				<TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-					<View style={[styles.wrap, { paddingBottom: screenBottomPad }]}>
-						<View style={[styles.content, contentMaxWidth ? { maxWidth: contentMaxWidth } : null]}>
-							<BAISurface style={[styles.card, { borderColor }]} padded bordered>
-								<View style={styles.header}>
-									<BAIText variant='title'>Discounts</BAIText>
+					<SettingsScreenLayout
+						screenStyle={{ paddingBottom: screenBottomPad }}
+						maxWidth={contentMaxWidth}
+					>
+						<BAISurface style={[styles.card, { borderColor }]} padded bordered>
+							<SettingsSectionTitle>Discounts</SettingsSectionTitle>
+
+							<View style={styles.controls}>
+								<View style={styles.actionsRow}>
+									<BAIButton
+										variant='outline'
+										intent='neutral'
+										onPress={onCancel}
+										disabled={isUiDisabled}
+										shape='pill'
+										widthPreset='standard'
+										style={styles.actionButton}
+									>
+										Cancel
+									</BAIButton>
+									<BAIButton
+										shape='pill'
+										onPress={openCreate}
+										disabled={isUiDisabled}
+										widthPreset='standard'
+										style={styles.actionButton}
+									>
+										Create
+									</BAIButton>
 								</View>
 
-								<View style={styles.controls}>
-									<View style={styles.actionsRow}>
-										<BAIButton
-											variant='outline'
-											intent='neutral'
-											onPress={onCancel}
-											disabled={isUiDisabled}
-											shape='pill'
-											widthPreset='standard'
-											style={styles.actionButton}
-										>
-											Cancel
-										</BAIButton>
-										<BAIButton
-											shape='pill'
-											onPress={openCreate}
-											disabled={isUiDisabled}
-											widthPreset='standard'
-											style={styles.actionButton}
-										>
-											Create
-										</BAIButton>
-									</View>
-
-									{mode === "settings" ? (
-										<BAIPressableRow
-											label='Discount Visibility'
-											value={visibilityRowValue}
-											onPress={openVisibility}
-											disabled={isUiDisabled}
-											style={styles.visibilityRow}
-										/>
-									) : null}
-
-									<BAISearchBar
-										value={qText}
-										onChangeText={(v) => {
-											const cleaned = sanitizeSearchInput(v);
-											setQText(cleaned.length > FIELD_LIMITS.search ? cleaned.slice(0, FIELD_LIMITS.search) : cleaned);
-										}}
-										placeholder='Search discounts...'
-										maxLength={FIELD_LIMITS.search}
-										onClear={hasSearch ? onClearSearch : undefined}
+								{mode === "settings" ? (
+									<BAIPressableRow
+										label='Discount Visibility'
+										value={visibilityRowValue}
+										onPress={openVisibility}
 										disabled={isUiDisabled}
+										style={styles.visibilityRow}
 									/>
+								) : null}
 
-									<BAIGroupTabs
-										tabs={discountTabs}
-										value={filter}
-										onChange={setFilter}
-										disabled={isUiDisabled}
-										countFormatter={(count) => formatCompactNumber(count, countryCode)}
-									/>
-								</View>
+								<BAISearchBar
+									value={qText}
+									onChangeText={(v) => {
+										const cleaned = sanitizeSearchInput(v);
+										setQText(cleaned.length > FIELD_LIMITS.search ? cleaned.slice(0, FIELD_LIMITS.search) : cleaned);
+									}}
+									placeholder='Search discounts...'
+									maxLength={FIELD_LIMITS.search}
+									onClear={hasSearch ? onClearSearch : undefined}
+									disabled={isUiDisabled}
+								/>
 
-								<View style={styles.listSection}>
+								<BAIGroupTabs
+									tabs={discountTabs}
+									value={filter}
+									onChange={setFilter}
+									disabled={isUiDisabled}
+									countFormatter={(count) => formatCompactNumber(count, countryCode)}
+								/>
+							</View>
+
+							<View style={styles.listSection}>
 									{query.isLoading ? (
 										<View style={styles.loading}>
 											<BAIActivityIndicator />
@@ -456,10 +457,9 @@ export function DiscountsLedgerScreen({
 									) : null}
 
 									{!query.isLoading ? list : null}
-								</View>
-							</BAISurface>
-						</View>
-					</View>
+							</View>
+						</BAISurface>
+					</SettingsScreenLayout>
 				</TouchableWithoutFeedback>
 			</BAIScreen>
 		</>
@@ -470,25 +470,10 @@ export default DiscountsLedgerScreen;
 
 const styles = StyleSheet.create({
 	root: { flex: 1 },
-	wrap: {
-		flex: 1,
-		paddingHorizontal: 12,
-	},
-	content: {
-		flex: 1,
-		width: "100%",
-		alignSelf: "center",
-	},
 	card: {
 		flex: 1,
 		position: "relative",
 		borderRadius: 18,
-		gap: 10,
-	},
-	header: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
 		gap: 10,
 	},
 	controls: {

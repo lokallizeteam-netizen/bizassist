@@ -30,6 +30,7 @@ import { BAITextInput } from "@/components/ui/BAITextInput";
 import { BAIMinorMoneyInput } from "@/components/ui/BAIMinorMoneyInput";
 import { BAITextarea } from "@/components/ui/BAITextarea";
 import { BAISwitchRow } from "@/components/ui/BAISwitchRow";
+import { SettingsScreenLayout } from "@/components/settings/SettingsLayout";
 
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { useActiveBusinessMeta } from "@/modules/business/useActiveBusinessMeta";
@@ -254,7 +255,10 @@ export function DiscountEditScreen({ mode = "settings" }: { mode?: DiscountFlowM
 								onScrollBeginDrag={dismissKeyboard}
 								showsVerticalScrollIndicator={false}
 							>
-								<View style={[styles.screen, { backgroundColor: theme.colors.background }]}>
+								<SettingsScreenLayout
+									screenStyle={[styles.screen, { backgroundColor: theme.colors.background }]}
+									maxWidth={860}
+								>
 									{query.isLoading ? (
 										<BAISurface style={[styles.banner, { borderColor }]} padded bordered>
 											<BAIText variant='caption' muted>
@@ -423,7 +427,7 @@ export function DiscountEditScreen({ mode = "settings" }: { mode?: DiscountFlowM
 											</View>
 										</BAISurface>
 									) : null}
-								</View>
+								</SettingsScreenLayout>
 							</ScrollView>
 						</View>
 					</TouchableWithoutFeedback>
@@ -443,7 +447,7 @@ const styles = StyleSheet.create({
 	keyboardContent: { flex: 1 },
 	scroll: { flex: 1 },
 	scrollContent: { flexGrow: 1 },
-	screen: { flex: 1, padding: 12, paddingTop: 0 },
+	screen: { padding: 12, paddingTop: 0 },
 	banner: { borderRadius: 16 },
 	card: { gap: 12 },
 	moneyHalfInput: { width: "50%", alignSelf: "flex-start" },

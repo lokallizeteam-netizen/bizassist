@@ -19,6 +19,7 @@ import { BAIRetryButton } from "@/components/ui/BAIRetryButton";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout } from "@/components/settings/SettingsLayout";
 
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { categoriesApi } from "@/modules/categories/categories.api";
@@ -232,12 +233,13 @@ export default function SettingsCategoryDetailScreen() {
 		<>
 			<Stack.Screen options={headerOptions} />
 			<BAIScreen padded={false} safeTop={false} safeBottom={false} style={styles.root}>
-				<View
-					style={[
+				<SettingsScreenLayout
+					screenStyle={[
 						styles.screen,
 						styles.scrollContent,
 						{ backgroundColor: theme.colors.background, paddingBottom: tabBarHeight + 14 },
 					]}
+					maxWidth={860}
 				>
 					<BAISurface style={[styles.card, { borderColor }]} padded bordered>
 						<BAIText variant='caption' muted>
@@ -453,7 +455,7 @@ export default function SettingsCategoryDetailScreen() {
 							</>
 						) : null}
 					</BAISurface>
-				</View>
+				</SettingsScreenLayout>
 			</BAIScreen>
 		</>
 	);
@@ -462,7 +464,6 @@ export default function SettingsCategoryDetailScreen() {
 const styles = StyleSheet.create({
 	root: { flex: 1 },
 	screen: {
-		flex: 1,
 		paddingHorizontal: 8,
 	},
 	scrollContent: {

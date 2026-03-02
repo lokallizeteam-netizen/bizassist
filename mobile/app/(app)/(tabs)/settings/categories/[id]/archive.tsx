@@ -17,6 +17,7 @@ import { BAIRetryButton } from "@/components/ui/BAIRetryButton";
 import { BAIScreen } from "@/components/ui/BAIScreen";
 import { BAISurface } from "@/components/ui/BAISurface";
 import { BAIText } from "@/components/ui/BAIText";
+import { SettingsScreenLayout } from "@/components/settings/SettingsLayout";
 import { useAppBusy } from "@/hooks/useAppBusy";
 import { categoriesApi } from "@/modules/categories/categories.api";
 import { syncCategoryCaches } from "@/modules/categories/categories.cache";
@@ -122,7 +123,7 @@ export function CategoryArchiveScreen({ mode = "settings" }: { mode?: CategoryFl
 		<>
 			<Stack.Screen options={headerOptions} />
 			<BAIScreen tabbed padded={false} safeTop={false}>
-				<View style={styles.screen}>
+				<SettingsScreenLayout screenStyle={styles.screen} maxWidth={560}>
 					<BAISurface style={[styles.card, { borderColor }]} padded bordered>
 						<BAIText variant='caption' muted>
 							Archived categories remain in history and are removed from new picker selections.
@@ -190,7 +191,7 @@ export function CategoryArchiveScreen({ mode = "settings" }: { mode?: CategoryFl
 							</BAICTAPillButton>
 						</View>
 					</BAISurface>
-				</View>
+				</SettingsScreenLayout>
 			</BAIScreen>
 		</>
 	);
@@ -202,7 +203,6 @@ export default function SettingsCategoryArchiveScreen() {
 
 const styles = StyleSheet.create({
 	screen: {
-		flex: 1,
 		padding: 12,
 	},
 	card: {

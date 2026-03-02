@@ -59,7 +59,7 @@ import type { SelectedAttributeSnapshot } from "@/modules/attributes/attributes.
 import { unitDisplayToken } from "@/modules/units/units.format";
 import { useNavLock } from "@/shared/hooks/useNavLock";
 import { formatMoney } from "@/shared/money/money.format";
-import { consumePendingAttributeSelection, setPendingAttributeSelection } from "@/modules/pos/pos.attributeSelectionStore";
+import { consumePendingAttributeSelection } from "@/modules/pos/pos.attributeSelectionStore";
 
 type CartLine = {
 	productId: string;
@@ -400,65 +400,67 @@ export default function PosPhone() {
 		[disabled, lockNav, router, safeReplace],
 	);
 
-	function addToCartResolved(
-		p: CatalogProduct,
-		selectedModifierOptionIds: string[] = [],
-		totalModifiersDeltaMinor: bigint = 0n,
-		modifierSummary = "",
-		selectedAttributes: SelectedAttributeSnapshot[] = [],
-	) {
-		if (disabled) return;
-		const existing = cart[p.id];
-		if (resolvePosStatus(p).disabled && !existing) return;
+	const addToCartResolved = useCallback(
+		(
+			p: CatalogProduct,
+			selectedModifierOptionIds: string[] = [],
+			totalModifiersDeltaMinor: bigint = 0n,
+			modifierSummary = "",
+			selectedAttributes: SelectedAttributeSnapshot[] = [],
+		) => {
+			if (disabled) return;
 
-		const unitPrice = p.price ?? "0.00";
-		const unitId = String((p as any)?.unitId ?? (p as any)?.unit?.id ?? "").trim();
-		const unitName = String((p as any)?.unitName ?? (p as any)?.unit?.name ?? "").trim();
-		const unitAbbreviation = String((p as any)?.unitAbbreviation ?? (p as any)?.unit?.abbreviation ?? "").trim();
+			const unitPrice = p.price ?? "0.00";
+			const unitId = String((p as any)?.unitId ?? (p as any)?.unit?.id ?? "").trim();
+			const unitName = String((p as any)?.unitName ?? (p as any)?.unit?.name ?? "").trim();
+			const unitAbbreviation = String((p as any)?.unitAbbreviation ?? (p as any)?.unit?.abbreviation ?? "").trim();
 
-		const precisionScale = resolveCartLinePrecisionScale(p);
+			const precisionScale = resolveCartLinePrecisionScale(p);
 
-		setCart((prev) => {
-			const existing = prev[p.id];
-			const existingQty = existing?.quantity ?? "0";
+			setCart((prev) => {
+				const existing = prev[p.id];
+				if (resolvePosStatus(p).disabled && !existing) return prev;
 
-			const requested = addQuantityMajor(existingQty, precisionScale);
-			const { qty, maxQty, trackInventory } = clampQtyToStock({
-				product: p,
-				requestedQty: requested,
-				precisionScale,
-			});
-
-			if (qty === existingQty) return prev;
-
-			return {
-				...prev,
-				[p.id]: {
-					productId: p.id,
-					name: p.name,
-					unitPrice,
-					quantity: qty,
+				const existingQty = existing?.quantity ?? "0";
+				const requested = addQuantityMajor(existingQty, precisionScale);
+				const { qty, maxQty, trackInventory } = clampQtyToStock({
+					product: p,
+					requestedQty: requested,
 					precisionScale,
-					selectedModifierOptionIds: existing?.selectedModifierOptionIds ?? selectedModifierOptionIds,
-					totalModifiersDeltaMinor: existing?.totalModifiersDeltaMinor ?? totalModifiersDeltaMinor.toString(),
-					modifierSummary: existing?.modifierSummary ?? modifierSummary,
-					selectedAttributes: existing?.selectedAttributes ?? selectedAttributes,
-					attributeSummary:
-						existing?.attributeSummary ??
-						(selectedAttributes.length > 0
-							? selectedAttributes
-									.map((entry) => `${entry.attributeNameSnapshot}: ${entry.optionNameSnapshot}`)
-									.join(" | ")
-							: ""),
-					unitId,
-					unitName,
-					unitAbbreviation,
-					maxQty,
-					trackInventory,
-				},
-			};
-		});
-	}
+				});
+
+				if (qty === existingQty) return prev;
+
+				return {
+					...prev,
+					[p.id]: {
+						productId: p.id,
+						name: p.name,
+						unitPrice,
+						quantity: qty,
+						precisionScale,
+						selectedModifierOptionIds: existing?.selectedModifierOptionIds ?? selectedModifierOptionIds,
+						totalModifiersDeltaMinor: existing?.totalModifiersDeltaMinor ?? totalModifiersDeltaMinor.toString(),
+						modifierSummary: existing?.modifierSummary ?? modifierSummary,
+						selectedAttributes: existing?.selectedAttributes ?? selectedAttributes,
+						attributeSummary:
+							existing?.attributeSummary ??
+							(selectedAttributes.length > 0
+								? selectedAttributes
+										.map((entry) => `${entry.attributeNameSnapshot}: ${entry.optionNameSnapshot}`)
+										.join(" | ")
+								: ""),
+						unitId,
+						unitName,
+						unitAbbreviation,
+						maxQty,
+						trackInventory,
+					},
+				};
+			});
+		},
+		[disabled],
+	);
 
 	async function addToCart(p: CatalogProduct) {
 		if (disabled) return;
