@@ -1052,9 +1052,7 @@ export default function InventoryProductCreateScreen({
 					hasSelectedOptionSetsForSave && variationSelectionsForSave.length === draft.selectedOptionSetIds.length;
 				const selectedTaxIdsForSave = Array.from(
 					new Set(
-						(draft.taxExempt ? [] : draft.selectedTaxIds)
-							.map((taxId) => String(taxId ?? "").trim())
-							.filter(Boolean),
+						(draft.taxExempt ? [] : draft.selectedTaxIds).map((taxId) => String(taxId ?? "").trim()).filter(Boolean),
 					),
 				);
 
@@ -1761,8 +1759,8 @@ export default function InventoryProductCreateScreen({
 									{!hasAvailableModifierGroups && !modifierGroupsQuery.isLoading && !modifierGroupsQuery.isError ? (
 										<>
 											<BAIText variant='body' style={styles.modifiersHelperText}>
-												Add a custom set of modifiers to customize this item at checkout, such as toppings, add-ons,
-												or special requests.
+												Add a custom set of modifiers to customize this item at checkout, such as toppings, add-ons, or
+												special requests.
 											</BAIText>
 											<BAIButton
 												variant='subtle'

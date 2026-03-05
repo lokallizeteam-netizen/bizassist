@@ -573,7 +573,11 @@ export default function InventoryTabletScreen({ routeScope = "inventory" }: { ro
 	const isInitialLoading = productsQuery.isLoading && allItems.length === 0;
 	const isInitialError = !!productsQuery.isError && allItems.length === 0;
 	const showPrimaryEmptyCta =
-		statusTabValue === "ACTIVE" && !trimmedQ && !hasHealthFilter && filteredItems.length === 0 && !productsQuery.isError;
+		statusTabValue === "ACTIVE" &&
+		!trimmedQ &&
+		!hasHealthFilter &&
+		filteredItems.length === 0 &&
+		!productsQuery.isError;
 
 	const renderInventoryRow = useCallback(
 		({ item }: { item: InventoryProduct }) => {
@@ -671,7 +675,12 @@ export default function InventoryTabletScreen({ routeScope = "inventory" }: { ro
 								disabled={false}
 							/>
 
-							<BAISurface style={styles.filterSurface} padded={false} radius={16} borderWidth={StyleSheet.hairlineWidth}>
+							<BAISurface
+								style={styles.filterSurface}
+								padded={false}
+								radius={16}
+								borderWidth={StyleSheet.hairlineWidth}
+							>
 								<View style={styles.filterPanel}>
 									<View style={styles.tabsRowTight}>
 										<BAIGroupTabs<InventorySellableTabValue>
@@ -770,169 +779,171 @@ export default function InventoryTabletScreen({ routeScope = "inventory" }: { ro
 								</BAISurface>
 
 								<BAISurface style={styles.rightPane} padded>
-							<View style={styles.rightPaneContent}>
-								{!selectedId ? (
-									<View style={styles.center}>
-										<BAIText variant='body' muted>
-											{sellableTabValue === "SERVICES" ? "Select A Service To Open." : "Select An Item To Preview."}
-										</BAIText>
-									</View>
-								) : detailQuery.isLoading ? (
-									<View style={styles.center}>
-										<BAIText variant='body' muted>
-											Loading Item…
-										</BAIText>
-									</View>
-								) : detailQuery.isError ? (
-									<View style={styles.center}>
-										<BAIText variant='body'>Failed To Load Item.</BAIText>
-									</View>
-								) : (
-									<>
-										<View style={styles.detailHeroRow}>
-											<View style={styles.detailHeroLeft}>
-												<BAIText variant='caption' muted>
-													Item
-												</BAIText>
-												<BAIText variant='title' numberOfLines={1}>
-													{detailQuery.data?.name ?? "Item"}
-												</BAIText>
-
-												{typeLabel ? (
-													<BAIText variant='caption' muted>
-														Type: {typeLabel}
-													</BAIText>
-												) : null}
-											</View>
-
-											<View style={styles.detailHeroRight}>
-												<BAIText variant='caption' muted>
-													On Hand
-												</BAIText>
-												<BAIText variant='subtitle' style={styles.onHandValue}>
-													{detailOnHandLabel}
+									<View style={styles.rightPaneContent}>
+										{!selectedId ? (
+											<View style={styles.center}>
+												<BAIText variant='body' muted>
+													{sellableTabValue === "SERVICES" ? "Select A Service To Open." : "Select An Item To Preview."}
 												</BAIText>
 											</View>
-										</View>
+										) : detailQuery.isLoading ? (
+											<View style={styles.center}>
+												<BAIText variant='body' muted>
+													Loading Item…
+												</BAIText>
+											</View>
+										) : detailQuery.isError ? (
+											<View style={styles.center}>
+												<BAIText variant='body'>Failed To Load Item.</BAIText>
+											</View>
+										) : (
+											<>
+												<View style={styles.detailHeroRow}>
+													<View style={styles.detailHeroLeft}>
+														<BAIText variant='caption' muted>
+															Item
+														</BAIText>
+														<BAIText variant='title' numberOfLines={1}>
+															{detailQuery.data?.name ?? "Item"}
+														</BAIText>
 
-										<View style={[styles.metaPanel, { borderColor }]}>
-											<DetailMetaRow label='Category' borderColor={borderColor}>
-												<View style={styles.metaInline}>
-													{detailMeta.hasCategory ? <View style={[styles.categoryDot, categoryDotStyle]} /> : null}
-													<BAIText variant='body'>{detailMeta.categoryName}</BAIText>
-													{detailMeta.hasCategory && detailCategoryIsActive === false ? (
-														<View style={[styles.inactiveBadge, inactiveBadgeStyle]}>
-															<BAIText
-																variant='caption'
-																style={[
-																	styles.inactiveBadgeText,
-																	{ color: theme.colors.onSurfaceVariant ?? theme.colors.onSurface },
-																]}
-															>
-																Inactive
+														{typeLabel ? (
+															<BAIText variant='caption' muted>
+																Type: {typeLabel}
+															</BAIText>
+														) : null}
+													</View>
+
+													<View style={styles.detailHeroRight}>
+														<BAIText variant='caption' muted>
+															On Hand
+														</BAIText>
+														<BAIText variant='subtitle' style={styles.onHandValue}>
+															{detailOnHandLabel}
+														</BAIText>
+													</View>
+												</View>
+
+												<View style={[styles.metaPanel, { borderColor }]}>
+													<DetailMetaRow label='Category' borderColor={borderColor}>
+														<View style={styles.metaInline}>
+															{detailMeta.hasCategory ? <View style={[styles.categoryDot, categoryDotStyle]} /> : null}
+															<BAIText variant='body'>{detailMeta.categoryName}</BAIText>
+															{detailMeta.hasCategory && detailCategoryIsActive === false ? (
+																<View style={[styles.inactiveBadge, inactiveBadgeStyle]}>
+																	<BAIText
+																		variant='caption'
+																		style={[
+																			styles.inactiveBadgeText,
+																			{ color: theme.colors.onSurfaceVariant ?? theme.colors.onSurface },
+																		]}
+																	>
+																		Inactive
+																	</BAIText>
+																</View>
+															) : null}
+														</View>
+													</DetailMetaRow>
+
+													<DetailMetaRow label='SKU' borderColor={borderColor}>
+														<BAIText variant='body'>{detailMeta.sku}</BAIText>
+													</DetailMetaRow>
+
+													<DetailMetaRow label='Barcode' borderColor={borderColor}>
+														<BAIText variant='body'>{detailMeta.barcode}</BAIText>
+													</DetailMetaRow>
+
+													<DetailMetaRow label='Price' borderColor={borderColor}>
+														<BAIText variant='body'>{detailMeta.priceLabel}</BAIText>
+													</DetailMetaRow>
+
+													<DetailMetaRow label='Cost' borderColor={borderColor} isLast>
+														<BAIText variant='body'>{detailMeta.costLabel}</BAIText>
+													</DetailMetaRow>
+												</View>
+
+												<View style={styles.actions}>
+													<BAIButton
+														onPress={() =>
+															safePush(
+																router,
+																toScopedRoute(
+																	`/(app)/(tabs)/inventory/products/${encodeURIComponent(selectedId)}/adjust`,
+																),
+															)
+														}
+														disabled={!canNavigate || detailIsArchived}
+														style={styles.adjustBtn}
+														widthPreset='standard'
+													>
+														Adjust
+													</BAIButton>
+
+													<BAIButton
+														mode='outlined'
+														onPress={() =>
+															safePush(
+																router,
+																toScopedRoute(`/(app)/(tabs)/inventory/products/${encodeURIComponent(selectedId)}`),
+															)
+														}
+														disabled={!canNavigate}
+														widthPreset='standard'
+														style={styles.adjustBtn}
+													>
+														Open
+													</BAIButton>
+												</View>
+
+												<View style={[styles.sectionHeader, { borderBottomColor: borderColor }]}>
+													<View style={styles.sectionHeaderText}>
+														<BAIText variant='subtitle'>Recent Movements</BAIText>
+														<BAIText variant='caption' muted>
+															Latest Activity For This Item.
+														</BAIText>
+													</View>
+													<View style={[styles.countPill, { borderColor, backgroundColor: surfaceAlt }]}>
+														<BAIText variant='caption' muted>
+															{movementCountLabel}
+														</BAIText>
+													</View>
+												</View>
+
+												<View style={styles.sectionBody}>
+													{movementsQuery.isLoading ? (
+														<View style={styles.centerSmall}>
+															<BAIText variant='body' muted>
+																Loading Movements…
 															</BAIText>
 														</View>
-													) : null}
+													) : movementsQuery.isError ? (
+														<View style={styles.centerSmall}>
+															<BAIText variant='body'>Failed To Load Movements.</BAIText>
+														</View>
+													) : (movementsQuery.data?.items?.length ?? 0) === 0 ? (
+														<BAIText variant='body' muted>
+															No Recent Movements.
+														</BAIText>
+													) : (
+														<View style={{ gap: 10 }}>
+															{movementsQuery.data!.items.map((m) => (
+																<InventoryMovementRow
+																	key={m.id}
+																	movement={m}
+																	compact
+																	precisionScale={
+																		(detailQuery.data as any)?.unitPrecisionScale ??
+																		(detailQuery.data as any)?.unit?.precisionScale
+																	}
+																	unit={detailQuery.data as any}
+																/>
+															))}
+														</View>
+													)}
 												</View>
-											</DetailMetaRow>
-
-											<DetailMetaRow label='SKU' borderColor={borderColor}>
-												<BAIText variant='body'>{detailMeta.sku}</BAIText>
-											</DetailMetaRow>
-
-											<DetailMetaRow label='Barcode' borderColor={borderColor}>
-												<BAIText variant='body'>{detailMeta.barcode}</BAIText>
-											</DetailMetaRow>
-
-											<DetailMetaRow label='Price' borderColor={borderColor}>
-												<BAIText variant='body'>{detailMeta.priceLabel}</BAIText>
-											</DetailMetaRow>
-
-											<DetailMetaRow label='Cost' borderColor={borderColor} isLast>
-												<BAIText variant='body'>{detailMeta.costLabel}</BAIText>
-											</DetailMetaRow>
-										</View>
-
-										<View style={styles.actions}>
-											<BAIButton
-												onPress={() =>
-													safePush(
-														router,
-														toScopedRoute(`/(app)/(tabs)/inventory/products/${encodeURIComponent(selectedId)}/adjust`),
-													)
-												}
-												disabled={!canNavigate || detailIsArchived}
-												style={styles.adjustBtn}
-												widthPreset='standard'
-											>
-												Adjust
-											</BAIButton>
-
-											<BAIButton
-												mode='outlined'
-												onPress={() =>
-													safePush(
-														router,
-														toScopedRoute(`/(app)/(tabs)/inventory/products/${encodeURIComponent(selectedId)}`),
-													)
-												}
-												disabled={!canNavigate}
-												widthPreset='standard'
-												style={styles.adjustBtn}
-											>
-												Open
-											</BAIButton>
-										</View>
-
-										<View style={[styles.sectionHeader, { borderBottomColor: borderColor }]}>
-											<View style={styles.sectionHeaderText}>
-												<BAIText variant='subtitle'>Recent Movements</BAIText>
-												<BAIText variant='caption' muted>
-													Latest Activity For This Item.
-												</BAIText>
-											</View>
-											<View style={[styles.countPill, { borderColor, backgroundColor: surfaceAlt }]}>
-												<BAIText variant='caption' muted>
-													{movementCountLabel}
-												</BAIText>
-											</View>
-										</View>
-
-										<View style={styles.sectionBody}>
-											{movementsQuery.isLoading ? (
-												<View style={styles.centerSmall}>
-													<BAIText variant='body' muted>
-														Loading Movements…
-													</BAIText>
-												</View>
-											) : movementsQuery.isError ? (
-												<View style={styles.centerSmall}>
-													<BAIText variant='body'>Failed To Load Movements.</BAIText>
-												</View>
-											) : (movementsQuery.data?.items?.length ?? 0) === 0 ? (
-												<BAIText variant='body' muted>
-													No Recent Movements.
-												</BAIText>
-											) : (
-												<View style={{ gap: 10 }}>
-													{movementsQuery.data!.items.map((m) => (
-														<InventoryMovementRow
-															key={m.id}
-															movement={m}
-															compact
-															precisionScale={
-																(detailQuery.data as any)?.unitPrecisionScale ??
-																(detailQuery.data as any)?.unit?.precisionScale
-															}
-															unit={detailQuery.data as any}
-														/>
-													))}
-												</View>
-											)}
-										</View>
-									</>
-								)}
-							</View>
+											</>
+										)}
+									</View>
 								</BAISurface>
 							</View>
 						</View>

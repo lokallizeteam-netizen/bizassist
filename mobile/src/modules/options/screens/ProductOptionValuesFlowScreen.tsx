@@ -192,7 +192,17 @@ export function ProductOptionValuesFlowScreen({ routeScope = "inventory" }: { ro
 				...(productId ? { [PRODUCT_ID_KEY]: productId } : {}),
 			} as any,
 		});
-	}, [draft.draftId, draft.optionSelections, draft.selectedOptionSetIds, optionSet, patch, productId, rootReturnTo, router, toScopedRoute]);
+	}, [
+		draft.draftId,
+		draft.optionSelections,
+		draft.selectedOptionSetIds,
+		optionSet,
+		patch,
+		productId,
+		rootReturnTo,
+		router,
+		toScopedRoute,
+	]);
 
 	const onCreateOptionValue = useCallback(async () => {
 		if (!optionSet || isUiDisabled) return;

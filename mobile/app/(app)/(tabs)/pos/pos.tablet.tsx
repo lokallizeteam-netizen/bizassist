@@ -518,12 +518,10 @@ export default function PosTablet() {
 	const showCatalogEmptyCta = !trimmedQ && items.length === 0 && !productsQuery.isError;
 	const isTrulyError = !!productsQuery.isError && items.length === 0;
 	const syncLabel = productsQuery.isFetching ? "Syncing..." : isTrulyError ? "Sync failed" : "Synced";
-	const syncColor = isTrulyError
-		? theme.colors.error
-		: theme.colors.onSurfaceVariant ?? theme.colors.onSurface;
+	const syncColor = isTrulyError ? theme.colors.error : (theme.colors.onSurfaceVariant ?? theme.colors.onSurface);
 	const syncBg = isTrulyError
-		? theme.colors.errorContainer ?? theme.colors.error
-		: theme.colors.surfaceVariant ?? theme.colors.surface;
+		? (theme.colors.errorContainer ?? theme.colors.error)
+		: (theme.colors.surfaceVariant ?? theme.colors.surface);
 
 	const openQuantityEdit = useCallback(
 		(l: CartLine) => {
@@ -561,293 +559,296 @@ export default function PosTablet() {
 		<BAIScreen tabbed safeAreaGradientBottom>
 			<TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
 				<BAISurface style={[styles.container, styles.screenSurface]} padded={false} bordered={false} radius={0}>
-				<View style={styles.header}>
-					<View style={styles.headerLeft}>
-						<View style={styles.titleBlock}>
-							<View style={styles.titleRow}>
-								<BAIText variant='title'>POS</BAIText>
-								<View style={[styles.headerSyncBadge, { backgroundColor: syncBg }]}> 
-									<BAIText variant='caption' muted={false} style={{ color: syncColor, fontWeight: "600" }}>
-										{syncLabel}
-									</BAIText>
-								</View>
-							</View>
-							{businessName ? (
-								<BAIText variant='subtitle' muted numberOfLines={1}>
-									{businessName}
-								</BAIText>
-							) : null}
-						</View>
-						<View style={styles.searchWrap}>
-							<BAISearchBar
-								value={q}
-								onChangeText={(v) => {
-									const cleaned = sanitizeSearchInput(v);
-									setQ(cleaned.length > FIELD_LIMITS.search ? cleaned.slice(0, FIELD_LIMITS.search) : cleaned);
-								}}
-								placeholder='Search items'
-								maxLength={FIELD_LIMITS.search}
-							/>
-						</View>
-					</View>
-
-					<View style={styles.headerRight}>
-						<BAIButton shape='pill' onPress={() => setCart({})} disabled={disabled || cartLines.length === 0}>
-							Clear
-						</BAIButton>
-					</View>
-				</View>
-
-				<View style={styles.body}>
-					{/* Left: Catalog */}
-					<View style={[styles.pane, styles.catalogPane]}>
-						<View style={styles.paneHeader}>
-							<BAIText variant='title'>Catalog</BAIText>
-							<BAIText variant='caption' muted>
-								{items.length} items
-							</BAIText>
-						</View>
-
-						{items.length === 0 ? (
-							<View style={styles.emptyPane}>
-								<BAIText variant='body' muted>
-									{isTrulyError ? "Unable to load catalog." : "No items yet."}
-								</BAIText>
-								{showCatalogEmptyCta ? (
-									<BAIButton onPress={() => switchWorkspaceReplace("/(app)/(tabs)/inventory")}>
-										Go To Inventory
-									</BAIButton>
-								) : (
-									<BAIButton onPress={() => productsQuery.refetch()} disabled={disabled}>
-										Retry
-									</BAIButton>
-								)}
-							</View>
-						) : (
-							<FlatList
-								data={items}
-								keyExtractor={(p) => p.id}
-								contentContainerStyle={styles.listContent}
-								showsVerticalScrollIndicator={false}
-								refreshControl={
-									<RefreshControl
-										refreshing={productsQuery.isFetching && !productsQuery.isLoading}
-										onRefresh={onRefresh}
-									/>
-								}
-								ItemSeparatorComponent={() => <View style={styles.listItemGap} />}
-								renderItem={({ item }) => {
-									const inCartLine = cart[item.id];
-									const onHandRaw = resolveCatalogOnHandRaw(item, inCartLine);
-									const status = resolveCatalogStatus(item, inCartLine);
-									const rowItem = toPosCatalogInventoryRowItem(item, onHandRaw);
-
-									return (
-										<InventoryRow
-											item={rowItem}
-											showOnHandUnit={false}
-											categoryColor={item.categoryColor}
-											onPress={() => addToCart(item)}
-											disabled={disabled || (status.disabled && !inCartLine) || loadingModifierProductId === item.id}
-										/>
-									);
-								}}
-							/>
-						)}
-					</View>
-
-					{/* Right: Cart */}
-					<View style={[styles.pane, styles.cartPane, { borderLeftColor: borderColor }]}>
-						<View style={[styles.cartSection, { borderColor, backgroundColor: theme.colors.surface }]}>
-							<View style={[styles.paneHeader, { borderBottomColor: borderColor }]}>
-								<View>
-									<BAIText variant='title'>Cart</BAIText>
-									<BAIText variant='caption' muted>
-										{itemCount} items
-									</BAIText>
-								</View>
-							</View>
-
-							<View style={styles.cartBody}>
-								{cartLines.length === 0 ? (
-									<View style={styles.emptyPane}>
-										<BAIText variant='body' muted>
-											Your cart is empty.
+					<View style={styles.header}>
+						<View style={styles.headerLeft}>
+							<View style={styles.titleBlock}>
+								<View style={styles.titleRow}>
+									<BAIText variant='title'>POS</BAIText>
+									<View style={[styles.headerSyncBadge, { backgroundColor: syncBg }]}>
+										<BAIText variant='caption' muted={false} style={{ color: syncColor, fontWeight: "600" }}>
+											{syncLabel}
 										</BAIText>
 									</View>
-								) : (
-									<FlatList
-										data={cartLines}
-										keyExtractor={(l) =>
-											`${l.productId}:${(l.selectedModifierOptionIds ?? []).slice().sort().join(",")}`
-										}
-										contentContainerStyle={styles.cartList}
-										showsVerticalScrollIndicator={false}
-										ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: borderColor }]} />}
-										renderItem={({ item: l }) => {
-											const qtyToken = unitDisplayToken(l as any, "quantity", l.quantity);
-											const qtyCompact = formatQtyDisplay(l.quantity, 2, false);
-											const qtyLabel = qtyToken ? `${qtyCompact} ${qtyToken}` : qtyCompact;
-
-											const baseMinor = decimalToMinorUnits(l.unitPrice ?? "0.00");
-											const deltaMinor = BigInt(l.totalModifiersDeltaMinor ?? "0");
-											const effectiveUnitPrice = minorToDecimalString(baseMinor + deltaMinor, 2);
-											const unitPriceLabel = formatMoney({ currencyCode, amount: effectiveUnitPrice });
-											const lineMinor = lineTotalMinor({
-												unitPrice: effectiveUnitPrice,
-												quantity: l.quantity,
-												precisionScale: l.precisionScale,
-											});
-											const lineTotalLabel = formatMoney({ currencyCode, amount: minorToDecimalString(lineMinor, 2) });
-											const stockLeftRaw =
-												l.trackInventory && l.maxQty !== undefined ? subtractQuantity(l.maxQty, l.quantity) : "";
-											const stockLeft = stockLeftRaw ? formatQtyDisplay(stockLeftRaw, 2, false) : "";
-											const stockLabel = stockLeft ? `${stockLeft}${qtyToken ? ` ${qtyToken}` : ""} left` : "";
-
-											const product = productsById[l.productId];
-											const reorderPointRaw =
-												(product as any)?.reorderPoint ??
-												(product as any)?.reorderPointQty ??
-												(product as any)?.reorderPointCached ??
-												null;
-											const isZeroLeft =
-												l.trackInventory && stockLeftRaw !== "" && compareQuantity(stockLeftRaw, "0") <= 0;
-											const isLowLeft =
-												l.trackInventory &&
-												!isZeroLeft &&
-												reorderPointRaw != null &&
-												compareQuantity(stockLeftRaw, reorderPointRaw) <= 0;
-											const stockColor = isZeroLeft ? theme.colors.error : isLowLeft ? "#F59E0B" : undefined;
-
-											const atMax =
-												l.trackInventory &&
-												l.maxQty !== undefined &&
-												toScaledInt(l.quantity, l.precisionScale) >= toScaledInt(l.maxQty, l.precisionScale);
-
-											return (
-												<View style={styles.cartRow}>
-													<View style={styles.cartRowLeft}>
-														<BAIText variant='body' numberOfLines={1}>
-															{l.name}
-														</BAIText>
-
-														<BAIText variant='caption' muted>
-															{unitPriceLabel} • Qty {qtyLabel} • {lineTotalLabel}
-															{l.modifierSummary ? ` • ${l.modifierSummary}` : ""}
-															{stockLabel ? (
-																<BAIText
-																	variant='caption'
-																	muted={!isZeroLeft && !isLowLeft}
-																	style={stockColor ? { color: stockColor } : undefined}
-																>
-																	{` • ${stockLabel}`}
-																</BAIText>
-															) : null}
-														</BAIText>
-													</View>
-
-													<View style={styles.cartRowRight}>
-														<Pressable
-															disabled={!canNavigate}
-															onPress={() => setQty(l.productId, addQuantityStep(l.quantity, l.precisionScale, -1))}
-															style={({ pressed }) => [
-																styles.qtyBtn,
-																{ borderColor },
-																pressed && canNavigate && { opacity: 0.75 },
-																!canNavigate && { opacity: 0.55 },
-															]}
-														>
-															<BAIText variant='body'>−</BAIText>
-														</Pressable>
-
-														<Pressable
-															disabled={!canNavigate}
-															onPress={() => openQuantityEdit(l)}
-															accessibilityRole='button'
-															accessibilityLabel={`Edit quantity for ${l.name}`}
-															accessibilityHint='Edit quantity'
-															style={({ pressed }) => [
-																styles.qtyEditPill,
-																{ borderColor },
-																pressed &&
-																	canNavigate && {
-																		backgroundColor: theme.colors.surfaceVariant ?? theme.colors.surface,
-																	},
-																!canNavigate && { opacity: 0.55 },
-															]}
-														>
-															<MaterialCommunityIcons
-																name='pencil-outline'
-																size={14}
-																color={theme.colors.onSurfaceVariant ?? theme.colors.onSurface}
-															/>
-															<BAIText variant='caption' numberOfLines={1} style={styles.qtyEditText}>
-																{qtyLabel}
-															</BAIText>
-														</Pressable>
-
-														<Pressable
-															disabled={!canNavigate || atMax}
-															onPress={() => setQty(l.productId, addQuantityStep(l.quantity, l.precisionScale, 1))}
-															style={({ pressed }) => [
-																styles.qtyBtn,
-																{ borderColor },
-																pressed && canNavigate && !atMax && { opacity: 0.75 },
-																(!canNavigate || atMax) && { opacity: 0.55 },
-															]}
-														>
-															<BAIText variant='body'>+</BAIText>
-														</Pressable>
-													</View>
-												</View>
-											);
-										}}
-									/>
-								)}
+								</View>
+								{businessName ? (
+									<BAIText variant='subtitle' muted numberOfLines={1}>
+										{businessName}
+									</BAIText>
+								) : null}
+							</View>
+							<View style={styles.searchWrap}>
+								<BAISearchBar
+									value={q}
+									onChangeText={(v) => {
+										const cleaned = sanitizeSearchInput(v);
+										setQ(cleaned.length > FIELD_LIMITS.search ? cleaned.slice(0, FIELD_LIMITS.search) : cleaned);
+									}}
+									placeholder='Search items'
+									maxLength={FIELD_LIMITS.search}
+								/>
 							</View>
 						</View>
-						<View style={[styles.checkoutSection, { borderColor, backgroundColor: theme.colors.surface }]}>
-							<View style={styles.checkoutArea}>
-								<View style={styles.checkoutRow}>
-									<BAIText variant='body'>Total</BAIText>
-									<BAIText variant='title'>{subtotalCompact}</BAIText>
+
+						<View style={styles.headerRight}>
+							<BAIButton shape='pill' onPress={() => setCart({})} disabled={disabled || cartLines.length === 0}>
+								Clear
+							</BAIButton>
+						</View>
+					</View>
+
+					<View style={styles.body}>
+						{/* Left: Catalog */}
+						<View style={[styles.pane, styles.catalogPane]}>
+							<View style={styles.paneHeader}>
+								<BAIText variant='title'>Catalog</BAIText>
+								<BAIText variant='caption' muted>
+									{items.length} items
+								</BAIText>
+							</View>
+
+							{items.length === 0 ? (
+								<View style={styles.emptyPane}>
+									<BAIText variant='body' muted>
+										{isTrulyError ? "Unable to load catalog." : "No items yet."}
+									</BAIText>
+									{showCatalogEmptyCta ? (
+										<BAIButton onPress={() => switchWorkspaceReplace("/(app)/(tabs)/inventory")}>
+											Go To Inventory
+										</BAIButton>
+									) : (
+										<BAIButton onPress={() => productsQuery.refetch()} disabled={disabled}>
+											Retry
+										</BAIButton>
+									)}
+								</View>
+							) : (
+								<FlatList
+									data={items}
+									keyExtractor={(p) => p.id}
+									contentContainerStyle={styles.listContent}
+									showsVerticalScrollIndicator={false}
+									refreshControl={
+										<RefreshControl
+											refreshing={productsQuery.isFetching && !productsQuery.isLoading}
+											onRefresh={onRefresh}
+										/>
+									}
+									ItemSeparatorComponent={() => <View style={styles.listItemGap} />}
+									renderItem={({ item }) => {
+										const inCartLine = cart[item.id];
+										const onHandRaw = resolveCatalogOnHandRaw(item, inCartLine);
+										const status = resolveCatalogStatus(item, inCartLine);
+										const rowItem = toPosCatalogInventoryRowItem(item, onHandRaw);
+
+										return (
+											<InventoryRow
+												item={rowItem}
+												showOnHandUnit={false}
+												categoryColor={item.categoryColor}
+												onPress={() => addToCart(item)}
+												disabled={disabled || (status.disabled && !inCartLine) || loadingModifierProductId === item.id}
+											/>
+										);
+									}}
+								/>
+							)}
+						</View>
+
+						{/* Right: Cart */}
+						<View style={[styles.pane, styles.cartPane, { borderLeftColor: borderColor }]}>
+							<View style={[styles.cartSection, { borderColor, backgroundColor: theme.colors.surface }]}>
+								<View style={[styles.paneHeader, { borderBottomColor: borderColor }]}>
+									<View>
+										<BAIText variant='title'>Cart</BAIText>
+										<BAIText variant='caption' muted>
+											{itemCount} items
+										</BAIText>
+									</View>
 								</View>
 
-								<BAICTAButton disabled={!canCheckout} onPress={() => checkoutMutation.mutate()}>
-									{canCheckout
-										? `Charge ${subtotalCompact}`
-										: cartLines.length === 0
-											? "Add Items To Cart"
-											: "Charging..."}
-								</BAICTAButton>
+								<View style={styles.cartBody}>
+									{cartLines.length === 0 ? (
+										<View style={styles.emptyPane}>
+											<BAIText variant='body' muted>
+												Your cart is empty.
+											</BAIText>
+										</View>
+									) : (
+										<FlatList
+											data={cartLines}
+											keyExtractor={(l) =>
+												`${l.productId}:${(l.selectedModifierOptionIds ?? []).slice().sort().join(",")}`
+											}
+											contentContainerStyle={styles.cartList}
+											showsVerticalScrollIndicator={false}
+											ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: borderColor }]} />}
+											renderItem={({ item: l }) => {
+												const qtyToken = unitDisplayToken(l as any, "quantity", l.quantity);
+												const qtyCompact = formatQtyDisplay(l.quantity, 2, false);
+												const qtyLabel = qtyToken ? `${qtyCompact} ${qtyToken}` : qtyCompact;
+
+												const baseMinor = decimalToMinorUnits(l.unitPrice ?? "0.00");
+												const deltaMinor = BigInt(l.totalModifiersDeltaMinor ?? "0");
+												const effectiveUnitPrice = minorToDecimalString(baseMinor + deltaMinor, 2);
+												const unitPriceLabel = formatMoney({ currencyCode, amount: effectiveUnitPrice });
+												const lineMinor = lineTotalMinor({
+													unitPrice: effectiveUnitPrice,
+													quantity: l.quantity,
+													precisionScale: l.precisionScale,
+												});
+												const lineTotalLabel = formatMoney({
+													currencyCode,
+													amount: minorToDecimalString(lineMinor, 2),
+												});
+												const stockLeftRaw =
+													l.trackInventory && l.maxQty !== undefined ? subtractQuantity(l.maxQty, l.quantity) : "";
+												const stockLeft = stockLeftRaw ? formatQtyDisplay(stockLeftRaw, 2, false) : "";
+												const stockLabel = stockLeft ? `${stockLeft}${qtyToken ? ` ${qtyToken}` : ""} left` : "";
+
+												const product = productsById[l.productId];
+												const reorderPointRaw =
+													(product as any)?.reorderPoint ??
+													(product as any)?.reorderPointQty ??
+													(product as any)?.reorderPointCached ??
+													null;
+												const isZeroLeft =
+													l.trackInventory && stockLeftRaw !== "" && compareQuantity(stockLeftRaw, "0") <= 0;
+												const isLowLeft =
+													l.trackInventory &&
+													!isZeroLeft &&
+													reorderPointRaw != null &&
+													compareQuantity(stockLeftRaw, reorderPointRaw) <= 0;
+												const stockColor = isZeroLeft ? theme.colors.error : isLowLeft ? "#F59E0B" : undefined;
+
+												const atMax =
+													l.trackInventory &&
+													l.maxQty !== undefined &&
+													toScaledInt(l.quantity, l.precisionScale) >= toScaledInt(l.maxQty, l.precisionScale);
+
+												return (
+													<View style={styles.cartRow}>
+														<View style={styles.cartRowLeft}>
+															<BAIText variant='body' numberOfLines={1}>
+																{l.name}
+															</BAIText>
+
+															<BAIText variant='caption' muted>
+																{unitPriceLabel} • Qty {qtyLabel} • {lineTotalLabel}
+																{l.modifierSummary ? ` • ${l.modifierSummary}` : ""}
+																{stockLabel ? (
+																	<BAIText
+																		variant='caption'
+																		muted={!isZeroLeft && !isLowLeft}
+																		style={stockColor ? { color: stockColor } : undefined}
+																	>
+																		{` • ${stockLabel}`}
+																	</BAIText>
+																) : null}
+															</BAIText>
+														</View>
+
+														<View style={styles.cartRowRight}>
+															<Pressable
+																disabled={!canNavigate}
+																onPress={() => setQty(l.productId, addQuantityStep(l.quantity, l.precisionScale, -1))}
+																style={({ pressed }) => [
+																	styles.qtyBtn,
+																	{ borderColor },
+																	pressed && canNavigate && { opacity: 0.75 },
+																	!canNavigate && { opacity: 0.55 },
+																]}
+															>
+																<BAIText variant='body'>−</BAIText>
+															</Pressable>
+
+															<Pressable
+																disabled={!canNavigate}
+																onPress={() => openQuantityEdit(l)}
+																accessibilityRole='button'
+																accessibilityLabel={`Edit quantity for ${l.name}`}
+																accessibilityHint='Edit quantity'
+																style={({ pressed }) => [
+																	styles.qtyEditPill,
+																	{ borderColor },
+																	pressed &&
+																		canNavigate && {
+																			backgroundColor: theme.colors.surfaceVariant ?? theme.colors.surface,
+																		},
+																	!canNavigate && { opacity: 0.55 },
+																]}
+															>
+																<MaterialCommunityIcons
+																	name='pencil-outline'
+																	size={14}
+																	color={theme.colors.onSurfaceVariant ?? theme.colors.onSurface}
+																/>
+																<BAIText variant='caption' numberOfLines={1} style={styles.qtyEditText}>
+																	{qtyLabel}
+																</BAIText>
+															</Pressable>
+
+															<Pressable
+																disabled={!canNavigate || atMax}
+																onPress={() => setQty(l.productId, addQuantityStep(l.quantity, l.precisionScale, 1))}
+																style={({ pressed }) => [
+																	styles.qtyBtn,
+																	{ borderColor },
+																	pressed && canNavigate && !atMax && { opacity: 0.75 },
+																	(!canNavigate || atMax) && { opacity: 0.55 },
+																]}
+															>
+																<BAIText variant='body'>+</BAIText>
+															</Pressable>
+														</View>
+													</View>
+												);
+											}}
+										/>
+									)}
+								</View>
+							</View>
+							<View style={[styles.checkoutSection, { borderColor, backgroundColor: theme.colors.surface }]}>
+								<View style={styles.checkoutArea}>
+									<View style={styles.checkoutRow}>
+										<BAIText variant='body'>Total</BAIText>
+										<BAIText variant='title'>{subtotalCompact}</BAIText>
+									</View>
+
+									<BAICTAButton disabled={!canCheckout} onPress={() => checkoutMutation.mutate()}>
+										{canCheckout
+											? `Charge ${subtotalCompact}`
+											: cartLines.length === 0
+												? "Add Items To Cart"
+												: "Charging..."}
+									</BAICTAButton>
+								</View>
 							</View>
 						</View>
 					</View>
-				</View>
-				<PosModifiersPickerSheet
-					visible={modifierPickerVisible}
-					groups={modifierPickerGroups}
-					currencyCode={currencyCode}
-					onClose={() => {
-						setModifierPickerVisible(false);
-						setModifierPickerProduct(null);
-						setModifierPickerGroups([]);
-					}}
-					onConfirm={(selectionMap, selectedModifierOptionIds, totalDeltaMinor) => {
-						const product = modifierPickerProduct;
-						if (!product) return;
-						const parts: string[] = [];
-						for (const group of modifierPickerGroups) {
-							const selected = new Set(selectionMap[group.id] ?? []);
-							const names = group.options.filter((o) => selected.has(o.id)).map((o) => o.name);
-							if (names.length > 0) parts.push(`${group.name}: ${names.join(", ")}`);
-						}
-						addToCartResolved(product, selectedModifierOptionIds, totalDeltaMinor, parts.join(" | "));
-						setModifierPickerVisible(false);
-						setModifierPickerProduct(null);
-						setModifierPickerGroups([]);
-					}}
-				/>
+					<PosModifiersPickerSheet
+						visible={modifierPickerVisible}
+						groups={modifierPickerGroups}
+						currencyCode={currencyCode}
+						onClose={() => {
+							setModifierPickerVisible(false);
+							setModifierPickerProduct(null);
+							setModifierPickerGroups([]);
+						}}
+						onConfirm={(selectionMap, selectedModifierOptionIds, totalDeltaMinor) => {
+							const product = modifierPickerProduct;
+							if (!product) return;
+							const parts: string[] = [];
+							for (const group of modifierPickerGroups) {
+								const selected = new Set(selectionMap[group.id] ?? []);
+								const names = group.options.filter((o) => selected.has(o.id)).map((o) => o.name);
+								if (names.length > 0) parts.push(`${group.name}: ${names.join(", ")}`);
+							}
+							addToCartResolved(product, selectedModifierOptionIds, totalDeltaMinor, parts.join(" | "));
+							setModifierPickerVisible(false);
+							setModifierPickerProduct(null);
+							setModifierPickerGroups([]);
+						}}
+					/>
 				</BAISurface>
 			</TouchableWithoutFeedback>
 		</BAIScreen>

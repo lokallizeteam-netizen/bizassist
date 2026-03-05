@@ -36,13 +36,7 @@
 // - this list screen is read model + navigation shell; stock mutations occur in dedicated ledger flows
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import {
-	View,
-	StyleSheet,
-	FlatList,
-	RefreshControl,
-	Platform,
-} from "react-native";
+import { View, StyleSheet, FlatList, RefreshControl, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useTheme } from "react-native-paper";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
@@ -561,7 +555,11 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 						: "Add Your First Item To Begin Tracking Inventory.";
 
 	const showPrimaryEmptyCta =
-		statusTabValue === "ACTIVE" && !isSearching && !hasActiveFilter && filteredItems.length === 0 && !productsQuery.isError;
+		statusTabValue === "ACTIVE" &&
+		!isSearching &&
+		!hasActiveFilter &&
+		filteredItems.length === 0 &&
+		!productsQuery.isError;
 
 	const renderInventoryRow = useCallback(
 		({ item }: { item: InventoryProduct }) => {
@@ -661,7 +659,12 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 								disabled={false}
 							/>
 
-							<BAISurface style={styles.filterSurface} padded={false} radius={16} borderWidth={StyleSheet.hairlineWidth}>
+							<BAISurface
+								style={styles.filterSurface}
+								padded={false}
+								radius={16}
+								borderWidth={StyleSheet.hairlineWidth}
+							>
 								<View style={styles.filterPanel}>
 									{/* 1) Sellable Type */}
 									<View style={styles.tabsRowTight}>
@@ -699,8 +702,8 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 									) : null}
 								</View>
 							</BAISurface>
-							</View>
-						}
+						</View>
+					}
 					scrollArea={
 						<View style={styles.scrollArea}>
 							{isInitialLoading ? (

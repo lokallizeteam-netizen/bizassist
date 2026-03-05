@@ -215,188 +215,188 @@ export default function RegisterScreen() {
 					keyboardShouldPersistTaps='always' // ✅ keep scroll/tap responsive while keyboard is open
 					keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} // ✅ swipe to dismiss
 				>
-						<View style={styles.outer}>
-							<View style={styles.container}>
-								<View style={styles.logoContainer}>
-									<Image source={Logo} style={styles.logo} resizeMode='contain' />
-									<BAIText variant='subtitle' style={[styles.appTitle, { color: appTitleColor }]}>
-										Biz Assist AI
-									</BAIText>
-								</View>
+					<View style={styles.outer}>
+						<View style={styles.container}>
+							<View style={styles.logoContainer}>
+								<Image source={Logo} style={styles.logo} resizeMode='contain' />
+								<BAIText variant='subtitle' style={[styles.appTitle, { color: appTitleColor }]}>
+									Biz Assist AI
+								</BAIText>
+							</View>
 
-								<View style={styles.header}>
-									<BAIText variant='title'>Create your account</BAIText>
-									<BAIText variant='subtitle' muted>
-										Sign up to start using BizAssist AI for your business.
-									</BAIText>
-								</View>
+							<View style={styles.header}>
+								<BAIText variant='title'>Create your account</BAIText>
+								<BAIText variant='subtitle' muted>
+									Sign up to start using BizAssist AI for your business.
+								</BAIText>
+							</View>
 
-								<BAISurface style={styles.surface}>
-									<View style={styles.form}>
-										<View style={styles.errorContainer}>
-											{error ? (
+							<BAISurface style={styles.surface}>
+								<View style={styles.form}>
+									<View style={styles.errorContainer}>
+										{error ? (
+											<BAIText variant='caption' style={styles.errorText}>
+												{error}
+											</BAIText>
+										) : null}
+									</View>
+
+									<View style={styles.inputGroup}>
+										<BAITextInput
+											value={firstName}
+											onChangeText={(value) => {
+												setFirstName(sanitizeNameInput(value));
+												setError(null);
+												clearFieldError("firstName");
+											}}
+											placeholder='First name'
+											maxLength={FIELD_LIMITS.firstName}
+											returnKeyType='next'
+											error={!!fieldErrors.firstName}
+										/>
+										<View style={styles.fieldErrorContainer}>
+											{fieldErrors.firstName ? (
 												<BAIText variant='caption' style={styles.errorText}>
-													{error}
+													{fieldErrors.firstName}
 												</BAIText>
 											) : null}
 										</View>
+									</View>
 
-										<View style={styles.inputGroup}>
-											<BAITextInput
-												value={firstName}
-												onChangeText={(value) => {
-													setFirstName(sanitizeNameInput(value));
-													setError(null);
-													clearFieldError("firstName");
-												}}
-												placeholder='First name'
-												maxLength={FIELD_LIMITS.firstName}
-												returnKeyType='next'
-												error={!!fieldErrors.firstName}
-											/>
-											<View style={styles.fieldErrorContainer}>
-												{fieldErrors.firstName ? (
-													<BAIText variant='caption' style={styles.errorText}>
-														{fieldErrors.firstName}
-													</BAIText>
-												) : null}
-											</View>
-										</View>
-
-										<View style={styles.inputGroup}>
-											<BAITextInput
-												value={lastName}
-												onChangeText={(value) => {
-													setLastName(sanitizeNameInput(value));
-													setError(null);
-													clearFieldError("lastName");
-												}}
-												placeholder='Last name'
-												maxLength={FIELD_LIMITS.lastName}
-												returnKeyType='next'
-												error={!!fieldErrors.lastName}
-											/>
-											<View style={styles.fieldErrorContainer}>
-												{fieldErrors.lastName ? (
-													<BAIText variant='caption' style={styles.errorText}>
-														{fieldErrors.lastName}
-													</BAIText>
-												) : null}
-											</View>
-										</View>
-
-										<View style={styles.inputGroup}>
-											<BAITextInput
-												value={email}
-												onChangeText={(value) => {
-													setEmail(sanitizeEmailInput(value));
-													setError(null);
-													clearFieldError("email");
-												}}
-												autoCapitalize='none'
-												keyboardType='email-address'
-												autoComplete='email'
-												textContentType='emailAddress'
-												placeholder='Email'
-												maxLength={FIELD_LIMITS.email}
-												returnKeyType='next'
-												error={!!fieldErrors.email}
-											/>
-											<View style={styles.fieldErrorContainer}>
-												{fieldErrors.email ? (
-													<BAIText variant='caption' style={styles.errorText}>
-														{fieldErrors.email}
-													</BAIText>
-												) : null}
-											</View>
-										</View>
-
-										<View style={styles.inputGroupNoBottom}>
-											<BAITextInput
-												value={password}
-												onChangeText={(value) => {
-													setPassword(value);
-													setError(null);
-													clearFieldError("password");
-												}}
-												secureTextEntry={!isPasswordVisible}
-												placeholder='Password'
-												maxLength={FIELD_LIMITS.password}
-												autoCapitalize='none'
-												autoComplete='password-new'
-												textContentType='newPassword'
-												returnKeyType='done'
-												onSubmitEditing={handleSubmit}
-												error={!!fieldErrors.password}
-												right={
-													<TextInput.Icon
-														icon={isPasswordVisible ? "eye-off" : "eye"}
-														onPress={() => setIsPasswordVisible((v) => !v)}
-														forceTextInputFocus={false}
-													/>
-												}
-											/>
-											<View style={styles.fieldErrorContainer}>
-												{fieldErrors.password ? (
-													<BAIText variant='caption' style={styles.errorText}>
-														{fieldErrors.password}
-													</BAIText>
-												) : null}
-											</View>
-										</View>
-
-										<View style={styles.termsRow}>
-											<BAIText variant='caption'>By continuing, you agree to our </BAIText>
-											<Link href='/(legal)/terms' style={{ color: linkColor }}>
-												<BAIText variant='caption' style={{ color: linkColor }}>
-													Terms
+									<View style={styles.inputGroup}>
+										<BAITextInput
+											value={lastName}
+											onChangeText={(value) => {
+												setLastName(sanitizeNameInput(value));
+												setError(null);
+												clearFieldError("lastName");
+											}}
+											placeholder='Last name'
+											maxLength={FIELD_LIMITS.lastName}
+											returnKeyType='next'
+											error={!!fieldErrors.lastName}
+										/>
+										<View style={styles.fieldErrorContainer}>
+											{fieldErrors.lastName ? (
+												<BAIText variant='caption' style={styles.errorText}>
+													{fieldErrors.lastName}
 												</BAIText>
-											</Link>
-											<BAIText variant='caption'> and </BAIText>
-											<Link href='/(legal)/privacy' style={{ color: linkColor }}>
-												<BAIText variant='caption' style={{ color: linkColor }}>
-													Privacy Policy
-												</BAIText>
-											</Link>
-											<BAIText variant='caption'>.</BAIText>
-										</View>
-
-										<View style={styles.buttonBlock}>
-											<BAICTAButton
-												onPress={handleSubmit}
-												disabled={isBusy}
-												variant='solid'
-												intent='success'
-												style={styles.signUpBtn}
-												contentStyle={styles.signUpBtnContent}
-												labelStyle={[styles.signUpBtnLabel, { color: signUpLabelColor }]}
-												size='lg'
-											>
-												Sign Up
-											</BAICTAButton>
+											) : null}
 										</View>
 									</View>
-								</BAISurface>
 
-								<View style={styles.secondaryRow}>
-									<BAIText variant='caption' muted>
-										Already have an account?
-									</BAIText>
-									<View style={{ height: 8 }} />
-									<BAIButton
-										onPress={handleBackToSignIn}
-										disabled={isRouteLocked}
-										intent='primary'
-										variant='outline'
-										style={styles.createButton}
-										contentStyle={styles.createContent}
-										size='lg'
-									>
-										Back to Sign In
-									</BAIButton>
+									<View style={styles.inputGroup}>
+										<BAITextInput
+											value={email}
+											onChangeText={(value) => {
+												setEmail(sanitizeEmailInput(value));
+												setError(null);
+												clearFieldError("email");
+											}}
+											autoCapitalize='none'
+											keyboardType='email-address'
+											autoComplete='email'
+											textContentType='emailAddress'
+											placeholder='Email'
+											maxLength={FIELD_LIMITS.email}
+											returnKeyType='next'
+											error={!!fieldErrors.email}
+										/>
+										<View style={styles.fieldErrorContainer}>
+											{fieldErrors.email ? (
+												<BAIText variant='caption' style={styles.errorText}>
+													{fieldErrors.email}
+												</BAIText>
+											) : null}
+										</View>
+									</View>
+
+									<View style={styles.inputGroupNoBottom}>
+										<BAITextInput
+											value={password}
+											onChangeText={(value) => {
+												setPassword(value);
+												setError(null);
+												clearFieldError("password");
+											}}
+											secureTextEntry={!isPasswordVisible}
+											placeholder='Password'
+											maxLength={FIELD_LIMITS.password}
+											autoCapitalize='none'
+											autoComplete='password-new'
+											textContentType='newPassword'
+											returnKeyType='done'
+											onSubmitEditing={handleSubmit}
+											error={!!fieldErrors.password}
+											right={
+												<TextInput.Icon
+													icon={isPasswordVisible ? "eye-off" : "eye"}
+													onPress={() => setIsPasswordVisible((v) => !v)}
+													forceTextInputFocus={false}
+												/>
+											}
+										/>
+										<View style={styles.fieldErrorContainer}>
+											{fieldErrors.password ? (
+												<BAIText variant='caption' style={styles.errorText}>
+													{fieldErrors.password}
+												</BAIText>
+											) : null}
+										</View>
+									</View>
+
+									<View style={styles.termsRow}>
+										<BAIText variant='caption'>By continuing, you agree to our </BAIText>
+										<Link href='/(legal)/terms' style={{ color: linkColor }}>
+											<BAIText variant='caption' style={{ color: linkColor }}>
+												Terms
+											</BAIText>
+										</Link>
+										<BAIText variant='caption'> and </BAIText>
+										<Link href='/(legal)/privacy' style={{ color: linkColor }}>
+											<BAIText variant='caption' style={{ color: linkColor }}>
+												Privacy Policy
+											</BAIText>
+										</Link>
+										<BAIText variant='caption'>.</BAIText>
+									</View>
+
+									<View style={styles.buttonBlock}>
+										<BAICTAButton
+											onPress={handleSubmit}
+											disabled={isBusy}
+											variant='solid'
+											intent='success'
+											style={styles.signUpBtn}
+											contentStyle={styles.signUpBtnContent}
+											labelStyle={[styles.signUpBtnLabel, { color: signUpLabelColor }]}
+											size='lg'
+										>
+											Sign Up
+										</BAICTAButton>
+									</View>
 								</View>
+							</BAISurface>
+
+							<View style={styles.secondaryRow}>
+								<BAIText variant='caption' muted>
+									Already have an account?
+								</BAIText>
+								<View style={{ height: 8 }} />
+								<BAIButton
+									onPress={handleBackToSignIn}
+									disabled={isRouteLocked}
+									intent='primary'
+									variant='outline'
+									style={styles.createButton}
+									contentStyle={styles.createContent}
+									size='lg'
+								>
+									Back to Sign In
+								</BAIButton>
 							</View>
 						</View>
+					</View>
 				</ScrollView>
 			</BAIScreen>
 		</TouchableWithoutFeedback>

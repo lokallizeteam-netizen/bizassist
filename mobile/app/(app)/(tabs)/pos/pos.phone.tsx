@@ -543,12 +543,10 @@ export default function PosPhone() {
 	const showCatalogEmptyCta = !trimmedQ && items.length === 0 && !productsQuery.isError;
 	const isTrulyError = !!productsQuery.isError && items.length === 0;
 	const syncLabel = productsQuery.isFetching ? "Syncing..." : isTrulyError ? "Sync failed" : "Synced";
-	const syncColor = isTrulyError
-		? theme.colors.error
-		: theme.colors.onSurfaceVariant ?? theme.colors.onSurface;
+	const syncColor = isTrulyError ? theme.colors.error : (theme.colors.onSurfaceVariant ?? theme.colors.onSurface);
 	const syncBg = isTrulyError
-		? theme.colors.errorContainer ?? theme.colors.error
-		: theme.colors.surfaceVariant ?? theme.colors.surface;
+		? (theme.colors.errorContainer ?? theme.colors.error)
+		: (theme.colors.surfaceVariant ?? theme.colors.surface);
 
 	const openQuantityEdit = useCallback(
 		(l: CartLine) => {
@@ -718,178 +716,180 @@ export default function PosPhone() {
 			<TouchableWithoutFeedback onPress={dismissKeyboard} accessible={false}>
 				<BAISurface style={[styles.container, styles.screenSurface]} padded={false} bordered={false} radius={0}>
 					<View style={[styles.posHeaderCard, { borderColor, backgroundColor: theme.colors.surface }]}>
-					<View style={styles.header}>
-						<View style={styles.headerLeft}>
-							<View style={styles.headerTitleRow}>
-								<BAIText variant='title'>POS</BAIText>
-								<View style={[styles.headerSyncBadge, { backgroundColor: syncBg }]}> 
-									<BAIText variant='caption' muted={false} style={{ color: syncColor, fontWeight: "600" }}>
-										{syncLabel}
-									</BAIText>
+						<View style={styles.header}>
+							<View style={styles.headerLeft}>
+								<View style={styles.headerTitleRow}>
+									<BAIText variant='title'>POS</BAIText>
+									<View style={[styles.headerSyncBadge, { backgroundColor: syncBg }]}>
+										<BAIText variant='caption' muted={false} style={{ color: syncColor, fontWeight: "600" }}>
+											{syncLabel}
+										</BAIText>
+									</View>
 								</View>
+								{businessName ? (
+									<BAIText variant='subtitle' muted numberOfLines={1}>
+										{businessName}
+									</BAIText>
+								) : null}
 							</View>
-							{businessName ? (
-								<BAIText variant='subtitle' muted numberOfLines={1}>
-									{businessName}
-								</BAIText>
-							) : null}
+							<View style={styles.headerRight}>
+								<BAIButton shape='pill' onPress={() => setCart({})} disabled={disabled || cartLines.length === 0}>
+									Clear
+								</BAIButton>
+							</View>
 						</View>
-						<View style={styles.headerRight}>
-							<BAIButton shape='pill' onPress={() => setCart({})} disabled={disabled || cartLines.length === 0}>
-								Clear
-							</BAIButton>
-						</View>
-					</View>
 
-					<View style={styles.tabsWrap}>
-						<BAIGroupTabs<PosTab>
-							value={tab}
-							onChange={setTab}
-							disabled={disabled}
-							tabs={posTabs}
-							countFormatter={(count) => formatCompactNumber(count, countryCode)}
-						/>
+						<View style={styles.tabsWrap}>
+							<BAIGroupTabs<PosTab>
+								value={tab}
+								onChange={setTab}
+								disabled={disabled}
+								tabs={posTabs}
+								countFormatter={(count) => formatCompactNumber(count, countryCode)}
+							/>
+						</View>
+
+						{tab === "CATALOG" ? (
+							<View style={styles.searchWrap}>
+								<BAISearchBar
+									value={q}
+									onChangeText={(v) => {
+										const cleaned = sanitizeSearchInput(v);
+										setQ(cleaned.length > FIELD_LIMITS.search ? cleaned.slice(0, FIELD_LIMITS.search) : cleaned);
+									}}
+									placeholder='Search items'
+									maxLength={FIELD_LIMITS.search}
+								/>
+							</View>
+						) : null}
 					</View>
 
 					{tab === "CATALOG" ? (
-						<View style={styles.searchWrap}>
-							<BAISearchBar
-								value={q}
-								onChangeText={(v) => {
-									const cleaned = sanitizeSearchInput(v);
-									setQ(cleaned.length > FIELD_LIMITS.search ? cleaned.slice(0, FIELD_LIMITS.search) : cleaned);
-								}}
-								placeholder='Search items'
-								maxLength={FIELD_LIMITS.search}
-							/>
-						</View>
-					) : null}
-				</View>
-
-				{tab === "CATALOG" ? (
-					<>
-						<PosCatalogListShell
-							countLabel={`${items.length} items`}
-							showTitleAndCount={false}
-							showSyncBadge={false}
-							isLoading={productsQuery.isLoading}
-							isFetching={productsQuery.isFetching}
-							isError={isTrulyError}
-							onRetry={() => productsQuery.refetch()}
-							emptyTitle='No items yet'
-							emptyBody='Create items in Inventory to start selling.'
-							primaryCtaLabel={showCatalogEmptyCta ? "Go To Inventory" : undefined}
-							onPrimaryCta={showCatalogEmptyCta ? () => switchWorkspaceReplace("/(app)/(tabs)/inventory") : undefined}
+						<>
+							<PosCatalogListShell
+								countLabel={`${items.length} items`}
+								showTitleAndCount={false}
+								showSyncBadge={false}
+								isLoading={productsQuery.isLoading}
+								isFetching={productsQuery.isFetching}
+								isError={isTrulyError}
+								onRetry={() => productsQuery.refetch()}
+								emptyTitle='No items yet'
+								emptyBody='Create items in Inventory to start selling.'
+								primaryCtaLabel={showCatalogEmptyCta ? "Go To Inventory" : undefined}
+								onPrimaryCta={showCatalogEmptyCta ? () => switchWorkspaceReplace("/(app)/(tabs)/inventory") : undefined}
 							>
-							{items.length === 0 ? null : (
-								<FlatList
-									data={items}
-									keyExtractor={(p) => p.id}
-									contentContainerStyle={styles.listContent}
-									showsVerticalScrollIndicator={false}
-									refreshControl={
-										<RefreshControl
-											refreshing={productsQuery.isFetching && !productsQuery.isLoading}
-											onRefresh={onRefresh}
-										/>
-									}
-									ItemSeparatorComponent={() => <View style={styles.listItemGap} />}
-									renderItem={({ item }) => {
-										const inCartLine = cart[item.id];
-										const onHandRaw = resolveCatalogOnHandRaw(item, inCartLine);
-										const status = resolveCatalogStatus(item, inCartLine);
-										const rowItem = toPosCatalogInventoryRowItem(item, onHandRaw);
-										return (
-											<InventoryRow
-												item={rowItem}
-												showOnHandUnit={false}
-												categoryColor={item.categoryColor}
-												onPress={() => addToCart(item)}
-												disabled={disabled || (status.disabled && !inCartLine) || loadingModifierProductId === item.id}
-											/>
-										);
-									}}
-								/>
-							)}
-						</PosCatalogListShell>
-
-						{/* Cart summary footer on Catalog tab */}
-						{cartLines.length > 0 ? (
-							<View style={[styles.cartSummary, { borderColor, backgroundColor: theme.colors.surface }]}>
-								<View style={styles.cartSummaryLeft}>
-									<BAIText variant='subtitle' numberOfLines={1}>
-										Cart Total
-									</BAIText>
-									<BAIText variant='body' muted>
-										{itemCount} items • Total {formatMoney({ currencyCode, amount: subtotal })}
-									</BAIText>
-								</View>
-
-								<BAIButton shape='pill' onPress={() => setTab("CART")} disabled={disabled}>
-									View Cart
-								</BAIButton>
-							</View>
-						) : null}
-					</>
-				) : (
-					<>
-						<View style={[styles.cartSection, { borderColor, backgroundColor: theme.colors.surface }]}>
-							<View style={[styles.cartHeader, { borderBottomColor: borderColor }]}>
-								<View>
-									<BAIText variant='title'>Cart</BAIText>
-									<BAIText variant='caption' muted>
-										{itemCount} items
-									</BAIText>
-								</View>
-							</View>
-
-							<View style={styles.cartBody}>
-								{cartLines.length === 0 ? (
-									<View style={styles.emptyCart}>
-										<BAIText variant='body' muted>
-											Your cart is empty.
-										</BAIText>
-										<BAIButton
-											widthPreset='standard'
-											onPress={() => setTab("CATALOG")}
-											disabled={disabled}
-											style={{ minWidth: 180 }}
-										>
-											Browse Catalog
-										</BAIButton>
-									</View>
-								) : (
+								{items.length === 0 ? null : (
 									<FlatList
-										data={cartLines}
-										keyExtractor={(l) =>
-											`${l.productId}:${(l.selectedModifierOptionIds ?? []).slice().sort().join(",")}`
-										}
-										contentContainerStyle={styles.cartList}
+										data={items}
+										keyExtractor={(p) => p.id}
+										contentContainerStyle={styles.listContent}
 										showsVerticalScrollIndicator={false}
-										ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: borderColor }]} />}
-										renderItem={({ item }) => renderCartRow(item)}
+										refreshControl={
+											<RefreshControl
+												refreshing={productsQuery.isFetching && !productsQuery.isLoading}
+												onRefresh={onRefresh}
+											/>
+										}
+										ItemSeparatorComponent={() => <View style={styles.listItemGap} />}
+										renderItem={({ item }) => {
+											const inCartLine = cart[item.id];
+											const onHandRaw = resolveCatalogOnHandRaw(item, inCartLine);
+											const status = resolveCatalogStatus(item, inCartLine);
+											const rowItem = toPosCatalogInventoryRowItem(item, onHandRaw);
+											return (
+												<InventoryRow
+													item={rowItem}
+													showOnHandUnit={false}
+													categoryColor={item.categoryColor}
+													onPress={() => addToCart(item)}
+													disabled={
+														disabled || (status.disabled && !inCartLine) || loadingModifierProductId === item.id
+													}
+												/>
+											);
+										}}
 									/>
 								)}
-							</View>
-						</View>
-						<View style={[styles.checkoutSection, { borderColor, backgroundColor: theme.colors.surface }]}>
-							<View style={styles.checkoutArea}>
-								<View style={styles.checkoutRow}>
-									<BAIText variant='body'>Total</BAIText>
-									<BAIText variant='title'>{subtotalCompact}</BAIText>
+							</PosCatalogListShell>
+
+							{/* Cart summary footer on Catalog tab */}
+							{cartLines.length > 0 ? (
+								<View style={[styles.cartSummary, { borderColor, backgroundColor: theme.colors.surface }]}>
+									<View style={styles.cartSummaryLeft}>
+										<BAIText variant='subtitle' numberOfLines={1}>
+											Cart Total
+										</BAIText>
+										<BAIText variant='body' muted>
+											{itemCount} items • Total {formatMoney({ currencyCode, amount: subtotal })}
+										</BAIText>
+									</View>
+
+									<BAIButton shape='pill' onPress={() => setTab("CART")} disabled={disabled}>
+										View Cart
+									</BAIButton>
+								</View>
+							) : null}
+						</>
+					) : (
+						<>
+							<View style={[styles.cartSection, { borderColor, backgroundColor: theme.colors.surface }]}>
+								<View style={[styles.cartHeader, { borderBottomColor: borderColor }]}>
+									<View>
+										<BAIText variant='title'>Cart</BAIText>
+										<BAIText variant='caption' muted>
+											{itemCount} items
+										</BAIText>
+									</View>
 								</View>
 
-								<BAICTAButton disabled={!canCheckout} onPress={() => checkoutMutation.mutate()}>
-									{canCheckout
-										? `Charge ${subtotalCompact}`
-										: cartLines.length === 0
-											? "Add Items To Cart"
-											: "Charging..."}
-								</BAICTAButton>
+								<View style={styles.cartBody}>
+									{cartLines.length === 0 ? (
+										<View style={styles.emptyCart}>
+											<BAIText variant='body' muted>
+												Your cart is empty.
+											</BAIText>
+											<BAIButton
+												widthPreset='standard'
+												onPress={() => setTab("CATALOG")}
+												disabled={disabled}
+												style={{ minWidth: 180 }}
+											>
+												Browse Catalog
+											</BAIButton>
+										</View>
+									) : (
+										<FlatList
+											data={cartLines}
+											keyExtractor={(l) =>
+												`${l.productId}:${(l.selectedModifierOptionIds ?? []).slice().sort().join(",")}`
+											}
+											contentContainerStyle={styles.cartList}
+											showsVerticalScrollIndicator={false}
+											ItemSeparatorComponent={() => <View style={[styles.sep, { backgroundColor: borderColor }]} />}
+											renderItem={({ item }) => renderCartRow(item)}
+										/>
+									)}
+								</View>
 							</View>
-						</View>
-					</>
-				)}
+							<View style={[styles.checkoutSection, { borderColor, backgroundColor: theme.colors.surface }]}>
+								<View style={styles.checkoutArea}>
+									<View style={styles.checkoutRow}>
+										<BAIText variant='body'>Total</BAIText>
+										<BAIText variant='title'>{subtotalCompact}</BAIText>
+									</View>
+
+									<BAICTAButton disabled={!canCheckout} onPress={() => checkoutMutation.mutate()}>
+										{canCheckout
+											? `Charge ${subtotalCompact}`
+											: cartLines.length === 0
+												? "Add Items To Cart"
+												: "Charging..."}
+									</BAICTAButton>
+								</View>
+							</View>
+						</>
+					)}
 					<PosModifiersPickerSheet
 						visible={modifierPickerVisible}
 						groups={modifierPickerGroups}
@@ -908,12 +908,7 @@ export default function PosPhone() {
 								const names = group.options.filter((o) => selected.has(o.id)).map((o) => o.name);
 								if (names.length > 0) parts.push(`${group.name}: ${names.join(", ")}`);
 							}
-							addToCartResolved(
-								product,
-								selectedModifierOptionIds,
-								totalDeltaMinor,
-								parts.join(" | "),
-							);
+							addToCartResolved(product, selectedModifierOptionIds, totalDeltaMinor, parts.join(" | "));
 							setModifierPickerVisible(false);
 							setModifierPickerProduct(null);
 							setModifierPickerGroups([]);

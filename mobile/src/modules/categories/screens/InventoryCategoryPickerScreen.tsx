@@ -52,7 +52,8 @@ export default function CategoryPickerScreen({ routeScope = "inventory" }: { rou
 	const router = useRouter();
 	const theme = useTheme();
 	const { busy } = useAppBusy();
-	const createCategoryRoute = routeScope === "settings-items-services" ? CATEGORY_CREATE_ROUTE : INVENTORY_CATEGORY_CREATE_ROUTE;
+	const createCategoryRoute =
+		routeScope === "settings-items-services" ? CATEGORY_CREATE_ROUTE : INVENTORY_CATEGORY_CREATE_ROUTE;
 
 	const tabBarHeight = useBottomTabBarHeight();
 	const TAB_KISS_GAP = 12;

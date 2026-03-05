@@ -581,103 +581,102 @@ export default function UnitPickerScreen({ routeScope }: { routeScope?: Inventor
 							Retry
 						</BAIRetryButton>
 					</BAISurface>
-					) : (
-						<View style={styles.contentWrap}>
-							<BAISurface style={[styles.card, { flex: 1 }]} padded>
-								<View style={styles.actionsRow}>
-									<BAIButton
-										variant='outline'
-										compact
-										disabled={isNavLocked || busy.isBusy}
-										onPress={openAddUnit}
-										style={styles.actionButton}
-										widthPreset='standard'
-										shape='pill'
-										intent='primary'
-									>
-										Add Unit
-									</BAIButton>
+				) : (
+					<View style={styles.contentWrap}>
+						<BAISurface style={[styles.card, { flex: 1 }]} padded>
+							<View style={styles.actionsRow}>
+								<BAIButton
+									variant='outline'
+									compact
+									disabled={isNavLocked || busy.isBusy}
+									onPress={openAddUnit}
+									style={styles.actionButton}
+									widthPreset='standard'
+									shape='pill'
+									intent='primary'
+								>
+									Add Unit
+								</BAIButton>
 
-									<BAICTAPillButton
-										intent='primary'
-										variant='solid'
-										compact
-										disabled={!saveEnabled || isNavLocked || busy.isBusy}
-										onPress={onSave}
-										style={styles.actionButton}
-									>
-										Save Unit
-									</BAICTAPillButton>
+								<BAICTAPillButton
+									intent='primary'
+									variant='solid'
+									compact
+									disabled={!saveEnabled || isNavLocked || busy.isBusy}
+									onPress={onSave}
+									style={styles.actionButton}
+								>
+									Save Unit
+								</BAICTAPillButton>
+							</View>
+
+							<Pressable
+								onPress={openManageUnits}
+								disabled={isUiDisabled}
+								style={({ pressed }) => [
+									styles.utilityRow,
+									{ borderColor, backgroundColor: utilitySurfaceColor },
+									isUiDisabled && { opacity: 0.45 },
+									pressed && !isUiDisabled && { backgroundColor: utilityPressedBg },
+								]}
+							>
+								<View style={styles.utilityRowLeft}>
+									<View style={[styles.utilityIconWrap, { borderColor }]}>
+										<MaterialCommunityIcons name='cog-outline' size={18} color={utilityIconColor} />
+									</View>
+									<View style={styles.utilityCopy}>
+										<BAIText variant='caption' muted>
+											Manage Units
+										</BAIText>
+										<BAIText variant='subtitle'>Open unit management</BAIText>
+									</View>
 								</View>
+								<MaterialCommunityIcons name='chevron-right' size={22} color={utilityIconColor} />
+							</Pressable>
 
-								<Pressable
-									onPress={openManageUnits}
-									disabled={isUiDisabled}
-									style={({ pressed }) => [
-										styles.utilityRow,
-										{ borderColor, backgroundColor: utilitySurfaceColor },
-										isUiDisabled && { opacity: 0.45 },
-										pressed && !isUiDisabled && { backgroundColor: utilityPressedBg },
-									]}
-								>
-									<View style={styles.utilityRowLeft}>
-										<View style={[styles.utilityIconWrap, { borderColor }]}>
-											<MaterialCommunityIcons name='cog-outline' size={18} color={utilityIconColor} />
-										</View>
-										<View style={styles.utilityCopy}>
+							<ScrollView
+								style={styles.unitsScroll}
+								contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
+								showsVerticalScrollIndicator={false}
+								refreshControl={
+									<RefreshControl
+										refreshing={isPullRefreshing}
+										onRefresh={onRefresh}
+										tintColor={theme.colors.onSurface}
+										colors={[theme.colors.onSurface]}
+										progressBackgroundColor={theme.colors.surface}
+									/>
+								}
+								keyboardShouldPersistTaps='handled'
+								onTouchStart={Keyboard.dismiss}
+							>
+								<View style={styles.unitsListWrap}>
+									{governed.length === 0 ? (
+										<BAISurface style={styles.emptyCard} padded>
+											<BAIText variant='subtitle'>No units created yet.</BAIText>
 											<BAIText variant='caption' muted>
-												Manage Units
+												Create a unit to see it listed here.
 											</BAIText>
-											<BAIText variant='subtitle'>Open unit management</BAIText>
-										</View>
-									</View>
-									<MaterialCommunityIcons name='chevron-right' size={22} color={utilityIconColor} />
-								</Pressable>
-
-								<ScrollView
-									style={styles.unitsScroll}
-									contentContainerStyle={{ paddingBottom: tabBarHeight + 24 }}
-									showsVerticalScrollIndicator={false}
-									refreshControl={
-										<RefreshControl
-											refreshing={isPullRefreshing}
-											onRefresh={onRefresh}
-											tintColor={theme.colors.onSurface}
-											colors={[theme.colors.onSurface]}
-											progressBackgroundColor={theme.colors.surface}
-										/>
-									}
-									keyboardShouldPersistTaps='handled'
-									onTouchStart={Keyboard.dismiss}
-								>
-									<View style={styles.unitsListWrap}>
-										{governed.length === 0 ? (
-											<BAISurface style={styles.emptyCard} padded>
-												<BAIText variant='subtitle'>No units created yet.</BAIText>
-												<BAIText variant='caption' muted>
-													Create a unit to see it listed here.
-												</BAIText>
-											</BAISurface>
-										) : !hasSectionRows ? (
-											<BAISurface style={styles.emptyCard} padded>
-												<BAIText variant='subtitle'>No units found.</BAIText>
-												<BAIText variant='caption' muted>
-													Try another term or create a custom unit.
-												</BAIText>
-											</BAISurface>
-										) : (
-											<>
-												{countUnit ? renderUnitSection("Pinned Unit", [countUnit]) : null}
-												{renderUnitSection("Recent Units", recentUnits)}
-												{renderUnitSection("All Other Units", olderUnits)}
-											</>
-										)}
-
-									</View>
-								</ScrollView>
-							</BAISurface>
-						</View>
-					)}
+										</BAISurface>
+									) : !hasSectionRows ? (
+										<BAISurface style={styles.emptyCard} padded>
+											<BAIText variant='subtitle'>No units found.</BAIText>
+											<BAIText variant='caption' muted>
+												Try another term or create a custom unit.
+											</BAIText>
+										</BAISurface>
+									) : (
+										<>
+											{countUnit ? renderUnitSection("Pinned Unit", [countUnit]) : null}
+											{renderUnitSection("Recent Units", recentUnits)}
+											{renderUnitSection("All Other Units", olderUnits)}
+										</>
+									)}
+								</View>
+							</ScrollView>
+						</BAISurface>
+					</View>
+				)}
 			</BAIScreen>
 		</>
 	);

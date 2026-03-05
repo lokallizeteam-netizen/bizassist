@@ -42,13 +42,11 @@ export function PosCatalogListShell(props: PosCatalogListShellProps) {
 		return "Synced";
 	}, [props.isError, props.isFetching]);
 
-			const syncColor = props.isError
-				? theme.colors.error
-				: theme.colors.onSurfaceVariant ?? theme.colors.onSurface;
-			const syncOpacity = 1;
-			const syncBg = props.isError
-				? theme.colors.errorContainer ?? theme.colors.error
-				: theme.colors.surfaceVariant ?? theme.colors.surface;
+	const syncColor = props.isError ? theme.colors.error : (theme.colors.onSurfaceVariant ?? theme.colors.onSurface);
+	const syncOpacity = 1;
+	const syncBg = props.isError
+		? (theme.colors.errorContainer ?? theme.colors.error)
+		: (theme.colors.surfaceVariant ?? theme.colors.surface);
 	const title = props.title ?? "Catalog";
 	const showTitleAndCount = props.showTitleAndCount ?? true;
 	const showSyncBadge = props.showSyncBadge ?? true;
@@ -88,7 +86,9 @@ export function PosCatalogListShell(props: PosCatalogListShellProps) {
 				</View>
 			) : null}
 
-			{props.headerContent ? <View style={[styles.headerContent, { borderBottomColor: borderColor }]}>{props.headerContent}</View> : null}
+			{props.headerContent ? (
+				<View style={[styles.headerContent, { borderBottomColor: borderColor }]}>{props.headerContent}</View>
+			) : null}
 
 			{props.isLoading ? (
 				<View style={styles.center}>

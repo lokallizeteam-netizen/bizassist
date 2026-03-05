@@ -38,6 +38,7 @@ BizAssist governance is enforced as a canonical **6-layer architecture framework
 Implementation and review work must map to these layers and must not introduce parallel governance systems.
 
 Framework objectives:
+
 - UI consistency
 - stable APIs
 - predictable mobile state behavior
@@ -45,75 +46,92 @@ Framework objectives:
 - scalable repository architecture
 
 Audit lock:
+
 - governance coverage across these six layers is complete
 - no architectural governance layer is currently missing
 
 ## 0.2 BizAssist Architecture Lawbook (Locked)
 
 Purpose:
+
 - The Architecture Lawbook defines non-negotiable engineering rules that protect long-term platform stability, scalability, and maintainability.
 - Violations must be corrected before acceptance.
 
 ### Law 1 — Feature Ownership
+
 - Every feature must have a single owning module for business logic, API endpoints, and mutations.
 - Modules may consume other modules but must never override ownership.
 
 ### Law 2 — Feature-First Architecture
+
 - Backend and mobile must use feature-first module structures:
   - `api/src/modules/<feature>/`
   - `mobile/src/modules/<feature>/`
 - Layer-first architecture as primary organization is prohibited.
 
 ### Law 3 — Controllers Must Remain Thin
+
 - Controllers only handle HTTP input/output, validation handoff, and service invocation.
 - Business logic must live in services.
 
 ### Law 4 — Repositories Are Database-Only
+
 - Repositories perform database access only.
 - No business logic, validation orchestration, or workflow orchestration in repositories.
 
 ### Law 5 — APIs Must Be Backward Compatible
+
 - API contracts must remain stable for deployed clients.
 - Breaking changes require explicit versioning.
 - Safe evolution includes additive optional fields and careful enum extension.
 
 ### Law 6 — Server State Belongs to React Query
+
 - Mobile server state must be managed through TanStack React Query.
 - React Query owns caching, synchronization, and invalidation.
 
 ### Law 7 — UI State Must Remain Local
+
 - Temporary UI state remains local to screens where practical.
 - Global state must stay minimal and intentional.
 
 ### Law 8 — Continuous Scroll Form Architecture
+
 - Forms must use continuous scroll with independent section surfaces.
 - A single large wrapper card around full-form content is prohibited.
 
 ### Law 9 — One Primary Action per Screen Region
+
 - Each actionable region has one clear primary CTA.
 - Secondary CTAs are contextual and visually subordinate.
 
 ### Law 10 — Domain Entities Must Have Stable Identity
+
 - Entities require stable primary keys.
 - Business identifiers (for example SKU/barcode) must remain separate mutable fields.
 
 ### Law 11 — Schema Changes Must Be Safe
+
 - Prefer additive schema evolution.
 - Deprecate before removal.
 - Avoid destructive migrations in production paths.
 
 ### Law 12 — Lifecycle Over Deletion
+
 - Critical entities should use lifecycle states (for example `ACTIVE`, `ARCHIVED`) rather than hard deletion.
 
 ### Law 13 — API Endpoints Must Reflect Domain Ownership
+
 - Endpoint namespaces must map to owning domain responsibilities.
 - Mixed-responsibility endpoints are prohibited.
 
 ### Law 14 — Feature Modules Must Remain Decoupled
+
 - Minimize cross-feature coupling.
 - Consume through shared utilities/contracts, not internal cross-module imports.
 
 ### Law 15 — Repository Structure Must Remain Predictable
+
 - Backend modules should maintain canonical structure:
   - controller
   - service
@@ -124,38 +142,46 @@ Purpose:
 - Mobile modules must group screens/components/api clients by feature.
 
 ### Law 16 — Errors Must Be Structured and Understandable
+
 - Errors must return predictable structures with code and human-readable message.
 - Internal system details must not leak to clients.
 
 ### Law 17 — Mutations Must Trigger Cache Updates
+
 - Writes must invalidate or update relevant caches deliberately and predictably.
 
 ### Law 18 — Shared Components Must Remain Generic
+
 - Shared UI components must remain feature-agnostic.
 - Feature-specific components stay in feature modules.
 
 ### Law 19 — Performance Must Be Preserved by Design
+
 - Architecture decisions must prioritize performance by default:
   - efficient caching
   - indexed query paths
   - controlled payloads
 
 ### Law 20 — Architecture Discipline Is Mandatory
+
 - Architecture rules are binding engineering constraints, not suggestions.
 - Non-compliant designs must be refactored before implementation/merge.
 
 Final principle:
+
 - Architecture discipline is the foundation of long-term BizAssist product stability.
 
 ## 0.3 BizAssist Engineering Playbook (Locked)
 
 Purpose:
+
 - The Engineering Playbook is the operational development manual for day-to-day implementation, debugging, review, and delivery.
 - The Lawbook defines non-negotiable rules; the Playbook defines practical execution workflow.
 
 ### Standard Engineering Workflow
 
 All feature work must follow:
+
 - Idea
 - Discovery
 - Architecture Design
@@ -169,12 +195,14 @@ No feature may bypass this workflow.
 ### Discovery Phase Requirements
 
 Before implementation, discovery must produce:
+
 - user flow
 - affected modules
 - data model changes
 - mobile screen impact
 
 Discovery must identify:
+
 - feature intent and UX flow
 - ownership boundaries
 - architecture risks
@@ -182,6 +210,7 @@ Discovery must identify:
 ### Masterplan Approval Gate
 
 After discovery and before coding:
+
 - validate architecture compatibility
 - validate UI consistency
 - validate navigation compliance
@@ -192,6 +221,7 @@ Conflicting designs must be redesigned before implementation.
 ### Implementation Phase Rules
 
 Implementation must:
+
 - follow feature ownership
 - preserve modular architecture
 - avoid unnecessary abstractions
@@ -201,27 +231,35 @@ Implementation must:
 ### Pull Request Review Checklist (Mandatory)
 
 Architecture:
+
 - Is ownership/module placement correct?
 
 Business logic:
+
 - Is workflow logic in services (not controllers)?
 
 Database:
+
 - Are schema changes safe and non-destructive?
 
 API:
+
 - Are contracts backward compatible?
 
 Mobile state:
+
 - Does server-state handling follow React Query governance?
 
 UI:
+
 - Does the screen follow section-surface architecture rules?
 
 Repository:
+
 - Does file structure remain feature-first and predictable?
 
 Performance:
+
 - Are unnecessary API calls and expensive query paths avoided?
 
 PRs failing these checks must be corrected before merge.
@@ -231,12 +269,14 @@ PRs failing these checks must be corrected before merge.
 When a PR changes feature/flow documentation, the CI workflow `Capability Alignment Check` must pass.
 
 Scope enforced by CI:
+
 - `docs/features/*.md`
 - `docs/features/*MASTERPLAN*.md`
 - `docs/*FLOW*.md`
 - `docs/*QA_CHECKLIST*.md`
 
 Required fields in scoped docs:
+
 - `Capability:`
 - `Sub Capability:`
 - `Owner Surface:`
@@ -245,6 +285,7 @@ Required fields in scoped docs:
 - `Reference:` with at least one non-empty backticked doc link bullet
 
 Implementation references:
+
 - `.github/workflows/capability-alignment-check.yml`
 - `scripts/validate-capability-alignment.sh`
 - `docs/APP_FEATURE_FLOW_CAPABILITY_ALIGNMENT.md`
@@ -269,11 +310,13 @@ Implementation references:
 ### Refactoring Rules
 
 Allowed:
+
 - simplify logic
 - remove duplication
 - improve naming
 
 Constraint:
+
 - no behavior change unless explicitly intended and reviewed.
 
 ### Code Deletion Principle
@@ -286,6 +329,7 @@ Constraint:
 ### Migration Safety Checklist
 
 For every migration:
+
 - verify safety
 - avoid destructive changes
 - test in development/staging prior to production
@@ -295,13 +339,16 @@ Never deploy migrations that risk production data integrity.
 ### API Change Procedure
 
 Before API modification:
+
 - evaluate deployed mobile compatibility impact
 
 Safe:
+
 - optional field additions
 - new endpoints
 
 Unsafe:
+
 - field removal
 - field rename
 - response contract changes
@@ -327,6 +374,7 @@ Breaking changes require API versioning.
 ### Performance Review Rules
 
 Every feature must evaluate:
+
 - render efficiency
 - API request volume
 - query/index performance for frequent access paths
@@ -334,6 +382,7 @@ Every feature must evaluate:
 ### Security Principle
 
 Security is mandatory in implementation:
+
 - validate all inputs
 - protect authenticated endpoints
 - avoid leaking internal system details
@@ -341,6 +390,7 @@ Security is mandatory in implementation:
 ### Documentation Standard
 
 Significant features must document:
+
 - feature description
 - API endpoints
 - data model changes
@@ -353,6 +403,7 @@ Adherence is mandatory to keep the platform maintainable, scalable, and predicta
 ## 0.4 Architecture Decision Records (ADR) System (Locked)
 
 Purpose:
+
 - ADR is the official institutional memory for architectural decisions in BizAssist.
 - Architectural decisions must never rely on tribal knowledge.
 - If an engineer asks, “Why are we doing this?”, the answer must be “See ADR-XXXX.”
@@ -360,6 +411,7 @@ Purpose:
 ### ADR Scope
 
 Create ADRs for strategic decisions affecting:
+
 - system architecture
 - data model architecture
 - product architecture
@@ -387,6 +439,7 @@ Do not create ADRs for minor implementation tweaks (for example spacing-only UI 
 ### Status Lifecycle
 
 Allowed statuses:
+
 - Proposed
 - Accepted
 - Deprecated
@@ -396,11 +449,13 @@ Allowed statuses:
 ### Mandatory ADR Template
 
 All ADRs must follow the canonical template in:
+
 - `docs/architecture/adr/TEMPLATE.md`
 
 ### ADR Ownership
 
 Ownership by decision scope:
+
 - System Architecture:
   - owner: System Architect / Founder
 - Product Architecture:
@@ -421,6 +476,7 @@ Accepted ADRs become enforceable architecture law.
 ### ADR Change Governance
 
 To change architecture decisions:
+
 1. create a new ADR
 2. reference the prior ADR
 3. mark prior ADR status as `Superseded`
@@ -430,6 +486,7 @@ Historical ADRs remain preserved.
 ### Canonical ADR Set
 
 Current canonical records:
+
 - ADR-0001 Modular Monolith Architecture
 - ADR-0002 Feature-First Module Structure
 - ADR-0003 UDQI Quantity Model
@@ -450,13 +507,16 @@ Current canonical records:
 ## 0.5 Technical Standards Manual (Locked)
 
 Purpose:
+
 - The Technical Standards Manual defines implementation standards for day-to-day engineering across BizAssist.
 - It operationalizes architecture discipline through enforceable coding, structure, API, data, performance, and review rules.
 
 Canonical source:
+
 - `docs/TECHNICAL_STANDARDS_MANUAL.md`
 
 Coverage includes:
+
 - code style standards
 - project structure standards
 - API design standards
@@ -474,25 +534,30 @@ Coverage includes:
 - governance enforcement standards
 
 Enforcement:
+
 - PRs must satisfy the Technical Standards Manual before merge.
 - Non-compliant changes must be corrected or rejected.
 
 ## 0.6 Domain Model Bible (Locked)
 
 Purpose:
+
 - The Domain Model Bible defines BizAssist canonical business entities and non-negotiable invariants.
 - It is the domain truth source for API behavior, mobile behavior, schema design, reporting, analytics, and AI read paths.
 
 Canonical source:
+
 - `docs/DOMAIN_MODEL_BIBLE.md`
 
 Locked principles:
+
 - inventory-first architecture
 - append-only inventory ledger
 - UDQI fixed-point quantity system (`Unit.precisionScale`)
 - archive-only lifecycle governance
 
 Canonical core entities include:
+
 - User
 - Business
 - StaffMembership
@@ -507,24 +572,29 @@ Canonical core entities include:
 - InventoryMovement
 
 Invariant enforcement:
+
 - inventory totals derive from immutable movement history
 - sale line pricing is snapshotted at finalization and historically immutable
 - modifier effects are price-only and never inventory quantity mutators
 - completed sales are immutable and preserve linked inventory movements
 
 Implementation rule:
+
 - if implementation contradicts the Domain Model Bible, implementation must be refactored to conform.
 
 ## 0.7 System Invariants & Guardrails (Locked)
 
 Purpose:
+
 - System Invariants & Guardrails define non-negotiable safety rules that protect financial correctness, inventory integrity, authorization safety, and historical data trust.
 - Invariant violations must fail fast rather than allow corrupted state.
 
 Canonical source:
+
 - `docs/SYSTEM_INVARIANTS_GUARDRAILS.md`
 
 Locked invariant domains:
+
 - inventory invariants (append-only movement-derived stock)
 - quantity invariants (UDQI precision and fixed-point storage)
 - financial invariants (sale totals and payment reconciliation)
@@ -536,25 +606,31 @@ Locked invariant domains:
 - media invariants (signed upload pipeline + deterministic paths)
 
 Guardrail enforcement:
+
 - critical rules must be enforced across API validation, service checks, and database constraints
 - client validation alone is insufficient
 
 Observability:
+
 - all invariant violations must be logged with violation type, entity, user context, and correlationId
 
 Enforcement rule:
+
 - if an operation would violate an invariant, the operation must be rejected.
 
 ## 0.8 Feature Lifecycle Governance (Locked)
 
 Purpose:
+
 - Feature Lifecycle Governance defines the mandatory stage-gate process from idea through release and iteration.
 - It ensures feature work is architecture-aligned, domain-safe, and operationally controlled.
 
 Canonical source:
+
 - `docs/FEATURE_LIFECYCLE_GOVERNANCE.md`
 
 Locked lifecycle:
+
 - Idea
 - Discovery
 - Decision
@@ -564,35 +640,44 @@ Locked lifecycle:
 - Iteration
 
 Mandatory rule:
+
 - no feature may skip lifecycle stages.
 
 Decision governance:
+
 - outcomes are `Approved`, `Rejected`, or `Deferred`
 - architecture-changing features require ADR coverage before implementation
 
 Ticket governance:
+
 - approved features must include context anchor, feature idea, mode, ownership boundaries, technical constraints, acceptance criteria, and regression targets
 
 Implementation governance:
+
 - implementation must pass Architecture Lawbook, ADR, Domain Model Bible, System Invariants, and Technical Standards alignment checks
 
 Release governance:
+
 - release requires regression completion, invariant verification, and integration validation
 
 Escalation/rollback:
+
 - behavior-changing features require architecture review
 - releases must be reversible (disable or rollback path)
 
 ## 0.9 Product Capability Map (Locked)
 
 Purpose:
+
 - The Product Capability Map defines what BizAssist can do, where each capability belongs, and who owns it.
 - It is the canonical ownership map for module boundaries, screen ownership, API ownership, and data ownership.
 
 Canonical source:
+
 - `docs/PRODUCT_CAPABILITY_MAP.md`
 
 Locked output model:
+
 - Level 1 -> Level 2 -> Level 3 capability map (no deeper than Level 3)
 - each Level 3 capability declares:
   - owner surface
@@ -604,6 +689,7 @@ Locked output model:
   - exclusions/notes
 
 Locked strategy alignment:
+
 - inventory-first architecture
 - tablet-first UX
 - append-only inventory ledger
@@ -614,24 +700,29 @@ Locked strategy alignment:
 - AI assistive-only (never transactional authority)
 
 Ownership law:
+
 - Settings owns configuration lifecycle capabilities (categories, units, discounts, modifiers, policy placeholders)
 - Inventory workspace owns item/service lifecycle and stock movement operations
 - POS workspace owns cart/checkout/sales finalization and related inventory movement integration
 - Home workspace is entry and quick-actions only (no deep management ownership)
 
 Implementation rule:
+
 - no feature may enter implementation unless assigned to a capability in the Product Capability Map.
 
 ## 0.10 Capability to Module to Workspace Mapping (Locked)
 
 Purpose:
+
 - This mapping defines structural placement for each feature across capability ownership, backend module ownership, mobile workspace exposure, and domain entity boundaries.
 - It prevents duplication, overlap, and architectural drift.
 
 Canonical source:
+
 - `docs/CAPABILITY_MODULE_WORKSPACE_MAPPING.md`
 
 Locked output schema:
+
 - Capability
 - Sub Capability
 - Backend Module
@@ -641,19 +732,23 @@ Locked output schema:
 - System Invariants
 
 Locked workspaces:
+
 - Home
 - Inventory
 - POS
 - Settings
 
 Locked rule:
+
 - tabs are workspace selectors, not screen navigators.
 
 Implementation gate:
+
 - every feature must map capability, module, workspace, entities, and invariants before implementation.
 - multi-module features must declare one primary owner module.
 
 Safety constraints:
+
 - no new module creation without architecture review
 - no duplicated domain logic across modules
 - no UI features outside defined workspaces
@@ -661,18 +756,22 @@ Safety constraints:
 ## 0.11 UI Padding Axis Terminology (Locked)
 
 Purpose:
+
 - This terminology lock standardizes spacing language used in UI implementation requests and reviews.
 
 Locked mapping:
+
 - `x padding` means horizontal padding (x-axis).
 - `y padding` means vertical padding (y-axis).
 
 Enforcement:
+
 - Unless explicitly overridden in the request, all UI tasks must interpret x/y padding terms using this mapping.
 
 ## 1. Non‑Negotiable Product Principles
 
 Quick index:
+
 - See **1.13 Bottom Sheet vs Modal Selection Governance (Locked)** for canonical pattern selection criteria.
 
 1. **Correctness over cleverness.** Inventory and POS must be deterministic, auditable, and replay‑safe.
@@ -809,28 +908,41 @@ Rules:
 1. Canonical reusable pattern name is **POS Numeric Bottom Sheet Keyboard**.
 2. Canonical implementation/component name is **BAIPosNumpadSheet**.
 3. Pattern scope:
-  - all number inputs
-  - all money/currency inputs
-  - default numeric entry surface for operational forms moving forward.
+
+- all number inputs
+- all money/currency inputs
+- default numeric entry surface for operational forms moving forward.
+
 4. Required structure:
-  - bottom-anchored sheet container
-  - fixed numeric layout: `1-9`, `00`, `0`, `backspace`
-  - explicit in-sheet confirm action (`check` key)
+
+- bottom-anchored sheet container
+- fixed numeric layout: `1-9`, `00`, `0`, `backspace`
+- explicit in-sheet confirm action (`check` key)
+
 5. Reuse rule:
-  - do not create per-screen bespoke numeric keypad UIs when this pattern applies
-  - consume/reuse `BAIPosNumpadSheet` and keep key order/interaction semantics consistent.
+
+- do not create per-screen bespoke numeric keypad UIs when this pattern applies
+- consume/reuse `BAIPosNumpadSheet` and keep key order/interaction semantics consistent.
+
 6. Money-governance compatibility:
-  - this lock standardizes the input surface, not money-domain validation semantics
-  - existing precision, formatting, and cap governance for money inputs remains mandatory.
+
+- this lock standardizes the input surface, not money-domain validation semantics
+- existing precision, formatting, and cap governance for money inputs remains mandatory.
+
 7. Visual consistency:
-  - spacing, border treatment, and elevation must follow existing sheet/surface tokens
-  - only minimal token-level tuning is allowed per host screen.
+
+- spacing, border treatment, and elevation must follow existing sheet/surface tokens
+- only minimal token-level tuning is allowed per host screen.
+
 8. Forward implementation allowance:
-  - bottom sheets and modals are approved interaction patterns for new and refactored flows moving forward
-  - choose the pattern that best matches task complexity and expected interruption level
-  - implementations must remain token-based, deterministic, and aligned with existing navigation/overlay governance.
+
+- bottom sheets and modals are approved interaction patterns for new and refactored flows moving forward
+- choose the pattern that best matches task complexity and expected interruption level
+- implementations must remain token-based, deterministic, and aligned with existing navigation/overlay governance.
+
 9. Cross-reference:
-  - for canonical pattern selection criteria, follow **1.13 Bottom Sheet vs Modal Selection Governance**.
+
+- for canonical pattern selection criteria, follow **1.13 Bottom Sheet vs Modal Selection Governance**.
 
 ### 1.12 Currency Display Context Governance (Locked)
 
@@ -1045,7 +1157,7 @@ Option + Variation behavior is locked to a reusable option-set model where **Opt
   - `ProductOptionSetValue`
   - `ProductVariation`
   - `ProductVariationValue`
-  New schema abstractions are not required for v1 authoring flow.
+    New schema abstractions are not required for v1 authoring flow.
 - **Variation stock rule:**
   - variation rows may expose `Manage Stock` drill-in during item/service authoring when that flow is approved on the host surface
   - stock movement semantics remain inventory-governed and must not be re-authored inside the options screens themselves

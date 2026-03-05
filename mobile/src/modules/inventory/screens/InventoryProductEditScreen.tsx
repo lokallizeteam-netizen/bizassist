@@ -1123,9 +1123,7 @@ export default function InventoryProductEditScreen({ routeScope = "inventory" }:
 											/>
 										) : null}
 
-										<BAIText variant='subtitle'>
-											{hasManualOnlyVariations ? "Variations" : "Options setup"}
-										</BAIText>
+										<BAIText variant='subtitle'>{hasManualOnlyVariations ? "Variations" : "Options setup"}</BAIText>
 
 										{!hasManualOnlyVariations ? (
 											<BAIPressableRow
@@ -1189,9 +1187,7 @@ export default function InventoryProductEditScreen({ routeScope = "inventory" }:
 
 										{sortedVariations.length > 0 ? (
 											<>
-												<BAIText variant='subtitle'>
-													Variations
-												</BAIText>
+												<BAIText variant='subtitle'>Variations</BAIText>
 												<View style={styles.variationRowsWrap}>
 													{sortedVariations.map((variation) => (
 														<Pressable
@@ -1273,7 +1269,9 @@ export default function InventoryProductEditScreen({ routeScope = "inventory" }:
 															}}
 															onBlur={() => {
 																if (isUiDisabled) return;
-																setReorderPointText((prev) => normalizeQuantityForBlur(prev, precisionScale, qtyMaxLen));
+																setReorderPointText((prev) =>
+																	normalizeQuantityForBlur(prev, precisionScale, qtyMaxLen),
+																);
 															}}
 															maxLength={qtyMaxLen}
 															keyboardType={quantityKeyboardType}
