@@ -521,18 +521,12 @@ export default function InventoryScanScreen() {
 						/>
 
 						<View style={styles.overlayContainer} pointerEvents='box-none'>
-							<Pressable
-								style={StyleSheet.absoluteFill}
-								onPress={dismissKeyboard}
-								accessibilityRole='none'
-							/>
+							<Pressable style={StyleSheet.absoluteFill} onPress={dismissKeyboard} accessibilityRole='none' />
 							<View style={styles.topBar} pointerEvents='box-none'>
 								<BAISurface style={styles.topBarCard}>
 									<BAIText variant='subtitle'>{lockedUI ? "Captured" : "Scan barcode"}</BAIText>
 									<BAIText variant='caption' muted>
-										{lockedUI && !universalOpen
-											? "Returning to Inventory..."
-											: "Scan inside the frame."}
+										{lockedUI && !universalOpen ? "Returning to Inventory..." : "Scan inside the frame."}
 									</BAIText>
 								</BAISurface>
 								<View style={styles.topBarActions}>
@@ -541,7 +535,7 @@ export default function InventoryScanScreen() {
 										variant='outlined'
 										size='xxl'
 										iconColor={torchEnabled ? theme.colors.primary : undefined}
-										accessibilityLabel={torchEnabled ? 'Turn flashlight off' : 'Turn flashlight on'}
+										accessibilityLabel={torchEnabled ? "Turn flashlight off" : "Turn flashlight on"}
 										onPress={onToggleTorch}
 										style={[styles.topBarCloseButton, torchEnabled ? { borderColor: theme.colors.primary } : null]}
 									/>
@@ -578,7 +572,10 @@ export default function InventoryScanScreen() {
 									<BAISurface
 										style={[
 											styles.bottomCard,
-											{ maxHeight: universalMaxHeight, backgroundColor: theme.dark ? "rgba(28,30,36,0.82)" : "rgba(255,255,255,0.88)" },
+											{
+												maxHeight: universalMaxHeight,
+												backgroundColor: theme.dark ? "rgba(28,30,36,0.82)" : "rgba(255,255,255,0.88)",
+											},
 										]}
 										onLayout={onUniversalCardLayout}
 									>
