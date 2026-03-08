@@ -285,6 +285,11 @@ function toPosCatalogInventoryRowItem(product: CatalogProduct, onHandRaw: string
 		(product as any)?.unitPrecisionScale ?? (product as any)?.precisionScale ?? (product as any)?.unit?.precisionScale;
 	const parsedPrice = product.price == null ? null : Number(product.price);
 	const parsedCost = product.cost == null ? null : Number(product.cost);
+	const durationTotalMinutes = (product as any)?.durationTotalMinutes ?? (product as any)?.serviceDurationMins ?? null;
+	const durationInitialMinutes = (product as any)?.durationInitialMinutes ?? null;
+	const durationProcessingMinutes = (product as any)?.durationProcessingMinutes ?? null;
+	const durationFinalMinutes = (product as any)?.durationFinalMinutes ?? null;
+	const processingEnabled = Boolean((product as any)?.processingEnabled);
 
 	return {
 		id: product.id,
@@ -302,6 +307,19 @@ function toPosCatalogInventoryRowItem(product: CatalogProduct, onHandRaw: string
 			isActive: true,
 		},
 		trackInventory: !!product.trackInventory,
+		durationTotalMinutes:
+			durationTotalMinutes == null || !Number.isFinite(Number(durationTotalMinutes)) ? null : Number(durationTotalMinutes),
+		processingEnabled,
+		durationInitialMinutes:
+			durationInitialMinutes == null || !Number.isFinite(Number(durationInitialMinutes))
+				? null
+				: Number(durationInitialMinutes),
+		durationProcessingMinutes:
+			durationProcessingMinutes == null || !Number.isFinite(Number(durationProcessingMinutes))
+				? null
+				: Number(durationProcessingMinutes),
+		durationFinalMinutes:
+			durationFinalMinutes == null || !Number.isFinite(Number(durationFinalMinutes)) ? null : Number(durationFinalMinutes),
 		reorderPoint: product.reorderPoint == null ? null : Number(product.reorderPoint),
 		reorderPointRaw: product.reorderPoint ?? undefined,
 		onHandCached: Number(onHandRaw) || 0,

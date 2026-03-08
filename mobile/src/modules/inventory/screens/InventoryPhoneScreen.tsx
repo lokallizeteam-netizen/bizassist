@@ -425,22 +425,20 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 		[sellableItems, statusTabValue],
 	);
 
-	// Health counts only make sense for Items + Active
-	const activeItemsForHealth = useMemo(
-		() => (sellableTabValue === "ITEMS" ? activeSellableItems : []),
-		[activeSellableItems, sellableTabValue],
+	// Health tabs and counts apply to Items for the current lifecycle (Active/Archived).
+	const showHealthTabs = sellableTabValue === "ITEMS";
+	const itemsForHealth = useMemo(
+		() => (showHealthTabs ? statusFilteredItems : []),
+		[showHealthTabs, statusFilteredItems],
 	);
-	const healthCounts = useMemo(() => getInventoryHealthCounts(activeItemsForHealth), [activeItemsForHealth]);
-
-	const showHealthTabs = statusTabValue === "ACTIVE" && sellableTabValue === "ITEMS";
-	const activeAllCount = activeItemsForHealth.length;
+	const healthCounts = useMemo(() => getInventoryHealthCounts(itemsForHealth), [itemsForHealth]);
+	const healthAllCount = itemsForHealth.length;
 
 	// Apply health filter only when valid
 	const filteredItems = useMemo(() => {
-		if (statusTabValue === "ARCHIVED") return statusFilteredItems;
 		if (!showHealthTabs) return statusFilteredItems;
 		return filterByHealthTab(statusFilteredItems, healthTabValue);
-	}, [healthTabValue, showHealthTabs, statusFilteredItems, statusTabValue]);
+	}, [healthTabValue, showHealthTabs, statusFilteredItems]);
 
 	const isSearching = trimmedQ.length > 0;
 	const hasActiveFilter = showHealthTabs && healthTabValue !== "ALL";
@@ -483,8 +481,7 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 				router.setParams({ status: undefined });
 				return;
 			}
-			// Archive list is status-driven only; health filter is active-only.
-			router.setParams({ status: "ARCHIVED", filter: undefined });
+			router.setParams({ status: "ARCHIVED" });
 		},
 		[canNavigate, router],
 	);
@@ -517,12 +514,12 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 
 	const healthTabs: readonly BAIGroupTab<InventoryHealthTabValue>[] = useMemo(
 		() => [
-			{ label: "All", value: "ALL", count: activeAllCount },
+			{ label: "All", value: "ALL", count: healthAllCount },
 			{ label: "In", value: "IN_STOCK", count: healthCounts.inStock },
 			{ label: "Low", value: "LOW_STOCK", count: healthCounts.low },
 			{ label: "Out", value: "OUT_OF_STOCK", count: healthCounts.out },
 		],
-		[activeAllCount, healthCounts.inStock, healthCounts.low, healthCounts.out],
+		[healthAllCount, healthCounts.inStock, healthCounts.low, healthCounts.out],
 	);
 
 	const isInitialLoading = productsQuery.isLoading && allItems.length === 0;
@@ -650,13 +647,8 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 								</View>
 							</View>
 
-							<BAISurface
-								style={styles.filterSurface}
-								padded={false}
-								radius={16}
-								borderWidth={StyleSheet.hairlineWidth}
-							>
-								<View style={styles.filterPanel}>
+							<View style={styles.filterPanel}>
+								<View style={styles.searchSectionNoHorizontalPadding}>
 									<InventorySearchBar
 										value={q}
 										onChangeText={setQ}
@@ -665,7 +657,9 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 										scanEnabled={canNavigate}
 										disabled={false}
 									/>
+								</View>
 
+								<View style={styles.tabsSectionNoHorizontalPadding}>
 									{/* 1) Sellable Type */}
 									<View style={styles.tabsRowTight}>
 										<BAIGroupTabs<InventorySellableTabValue>
@@ -701,7 +695,7 @@ export default function InventoryPhoneScreen({ routeScope = "inventory" }: { rou
 										</View>
 									) : null}
 								</View>
-							</BAISurface>
+							</View>
 						</View>
 					}
 					scrollArea={
@@ -837,13 +831,17 @@ const styles = StyleSheet.create({
 		marginTop: 0,
 		marginBottom: 0,
 	},
-	filterSurface: {
-		marginBottom: 0,
-	},
 	filterPanel: {
 		paddingHorizontal: 12,
 		paddingVertical: 8,
 		gap: 6,
+	},
+	searchSectionNoHorizontalPadding: {
+		marginHorizontal: -12,
+	},
+	tabsSectionNoHorizontalPadding: {
+		marginHorizontal: -12,
+		gap: 8,
 	},
 	tabsRowTight: {
 		marginTop: 0,

@@ -281,7 +281,11 @@ export class InventoryService {
 
 				trackInventory: Boolean(product.trackInventory),
 				durationTotalMinutes:
-					typeof (product as any).durationTotalMinutes === "number" ? (product as any).durationTotalMinutes : null,
+					typeof (product as any).durationTotalMinutes === "number"
+						? (product as any).durationTotalMinutes
+						: typeof (product as any).serviceDurationMins === "number"
+							? (product as any).serviceDurationMins
+							: null,
 				processingEnabled: Boolean((product as any).processingEnabled),
 				durationInitialMinutes:
 					typeof (product as any).durationInitialMinutes === "number" ? (product as any).durationInitialMinutes : null,

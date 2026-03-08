@@ -364,6 +364,12 @@ async function toCatalogProduct(p: any): Promise<CatalogProduct> {
 	const primaryImageUrl = await resolveProductImageUrl(p.primaryImageUrl ?? null);
 	const priceMinor = resolveMoneyMinor(p.priceMinor, p.price);
 	const costMinor = resolveMoneyMinor(p.costMinor, p.cost);
+	const durationTotalMinutes =
+		typeof p.durationTotalMinutes === "number"
+			? p.durationTotalMinutes
+			: typeof p.serviceDurationMins === "number"
+				? p.serviceDurationMins
+				: null;
 
 	return {
 		id: p.id,
@@ -391,7 +397,7 @@ async function toCatalogProduct(p: any): Promise<CatalogProduct> {
 		cost: costMinor == null ? null : minorUnitsToDecimalString(costMinor),
 
 		trackInventory: Boolean(p.trackInventory),
-		durationTotalMinutes: typeof p.durationTotalMinutes === "number" ? p.durationTotalMinutes : null,
+		durationTotalMinutes,
 		processingEnabled: Boolean(p.processingEnabled),
 		durationInitialMinutes: typeof p.durationInitialMinutes === "number" ? p.durationInitialMinutes : null,
 		durationProcessingMinutes: typeof p.durationProcessingMinutes === "number" ? p.durationProcessingMinutes : null,

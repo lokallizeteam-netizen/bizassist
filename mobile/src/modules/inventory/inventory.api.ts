@@ -276,7 +276,9 @@ function normalizeInventoryProduct(input: any): InventoryProduct {
 		input?.durationMinutes,
 		input?.duration,
 		input?.serviceDurationMinutes,
+		input?.serviceDurationMins,
 		input?.duration_total_minutes,
+		input?.service_duration_mins,
 	);
 	const derivedTotalFromSegments =
 		durationInitialMinutes !== null && durationProcessingMinutes !== null && durationFinalMinutes !== null

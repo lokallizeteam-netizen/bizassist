@@ -1172,6 +1172,7 @@ export function ModifierGroupUpsertScreen({ mode, intent }: Props) {
 					onToggleDeleteReveal={onToggleDeleteReveal}
 					onActionOption={isArchivedTab ? onRestoreOption : onArchiveOption}
 					onChangeOptionName={onChangeOptionName}
+					onOpenPriceKeyboard={openOptionPriceKeyboard}
 					onChangePriceMinor={onChangePriceMinor}
 				/>
 			);
@@ -1188,6 +1189,7 @@ export function ModifierGroupUpsertScreen({ mode, intent }: Props) {
 			maxPriceInputLength,
 			onArchiveOption,
 			onChangeOptionName,
+			openOptionPriceKeyboard,
 			onChangePriceMinor,
 			onRestoreOption,
 			onToggleDeleteReveal,
@@ -1586,6 +1588,12 @@ export function ModifierGroupUpsertScreen({ mode, intent }: Props) {
 					</View>
 				</TouchableWithoutFeedback>
 			</BAIScreen>
+			<BAINumericBottomSheetKeyboard
+				visible={isMoneyKeyboardOpen}
+				onDismiss={closeMoneyKeyboard}
+				onKeyPress={onMoneyKeyPress}
+				sheetKey={moneyKeyboardKey}
+			/>
 			<Modal visible={sharedAvailabilityOpen} transparent animationType='slide' onRequestClose={() => {}}>
 				<View style={styles.sheetBackdrop}>
 					<View style={StyleSheet.absoluteFill} />

@@ -682,7 +682,7 @@ const styles = StyleSheet.create({
 	// Top bar
 	topBar: {
 		flexDirection: "row",
-		alignItems: "center",
+		alignItems: "flex-start",
 		justifyContent: "space-between",
 	},
 	topBarCard: {
@@ -703,7 +703,7 @@ const styles = StyleSheet.create({
 	},
 	topBarActions: {
 		flexDirection: "row",
-		alignItems: "center",
+		alignItems: "flex-start",
 		gap: 8,
 	},
 	// Scan stage

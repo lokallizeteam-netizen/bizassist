@@ -306,9 +306,9 @@ export default function InventoryTabletScreen({ routeScope = "inventory" }: { ro
 		return () => clearTimeout(timer);
 	}, [trimmedQ]);
 
-	const showHealthTabs = statusTabValue === "ACTIVE" && sellableTabValue === "ITEMS";
-	const hasHealthFilter = showHealthTabs && !!activeFilter;
+	const showHealthTabs = sellableTabValue === "ITEMS";
 	const healthTabValue = normalizeHealthTabValue(activeFilter);
+	const hasHealthFilter = showHealthTabs && healthTabValue !== "ALL";
 
 	const productsQuery = useQuery({
 		queryKey: inventoryKeys.products(debouncedQ, { includeArchived: true }),
@@ -370,30 +370,32 @@ export default function InventoryTabletScreen({ routeScope = "inventory" }: { ro
 		[sellableItems, statusTabValue],
 	);
 
-	const activeItemItems = useMemo(() => filterByStatusTab(allItemItems, "ACTIVE"), [allItemItems]);
-	const healthCounts = useMemo(() => getInventoryHealthCounts(activeItemItems), [activeItemItems]);
+	const itemsForHealth = useMemo(
+		() => (showHealthTabs ? statusFilteredItems : []),
+		[showHealthTabs, statusFilteredItems],
+	);
+	const healthCounts = useMemo(() => getInventoryHealthCounts(itemsForHealth), [itemsForHealth]);
 	const inStockCount = useMemo(
 		() =>
-			activeItemItems.filter(
+			itemsForHealth.filter(
 				(item) => item.trackInventory && !isOutOfStock(item) && (!hasReorderPoint(item) || isStockHealthy(item)),
 			).length,
-		[activeItemItems],
+		[itemsForHealth],
 	);
 	const healthTabs: readonly BAIGroupTab<InventoryHealthTabValue>[] = useMemo(
 		() => [
-			{ label: "All", value: "ALL", count: activeItemItems.length },
+			{ label: "All", value: "ALL", count: itemsForHealth.length },
 			{ label: "In", value: "healthy", count: inStockCount },
 			{ label: "Low", value: "low", count: healthCounts.low },
 			{ label: "Out", value: "out", count: healthCounts.out },
 		],
-		[activeItemItems.length, healthCounts.low, healthCounts.out, inStockCount],
+		[itemsForHealth.length, healthCounts.low, healthCounts.out, inStockCount],
 	);
 
 	const filteredItems = useMemo(() => {
-		if (statusTabValue === "ARCHIVED") return statusFilteredItems;
 		if (sellableTabValue === "SERVICES") return statusFilteredItems;
 		return filterInventoryItems(statusFilteredItems, activeFilter);
-	}, [activeFilter, sellableTabValue, statusFilteredItems, statusTabValue]);
+	}, [activeFilter, sellableTabValue, statusFilteredItems]);
 
 	const createRoute = useMemo(() => {
 		if (routeScope === "settings-items-services") {
@@ -446,8 +448,7 @@ export default function InventoryTabletScreen({ routeScope = "inventory" }: { ro
 				router.setParams({ status: undefined });
 				return;
 			}
-			// Archive list is status-driven only; health filter is active-only.
-			router.setParams({ status: "ARCHIVED", filter: undefined });
+			router.setParams({ status: "ARCHIVED" });
 		},
 		[canNavigate, router],
 	);
@@ -669,48 +670,41 @@ export default function InventoryTabletScreen({ routeScope = "inventory" }: { ro
 								disabled={false}
 							/>
 
-							<BAISurface
-								style={styles.filterSurface}
-								padded={false}
-								radius={16}
-								borderWidth={StyleSheet.hairlineWidth}
-							>
-								<View style={styles.filterPanel}>
-									<View style={styles.tabsInlineRow}>
-										<View style={styles.tabsInlineItem}>
-											<BAIGroupTabs<InventorySellableTabValue>
-												tabs={sellableTabs}
-												value={sellableTabValue}
-												onChange={onSetSellable}
-												disabled={!canNavigate}
-												countFormatter={(count) => formatCompactCount(count, countryCode)}
-											/>
-										</View>
-
-										<View style={styles.tabsInlineItem}>
-											<BAIGroupTabs<InventoryStatusTabValue>
-												tabs={statusTabs}
-												value={statusTabValue}
-												onChange={onSetStatus}
-												disabled={!canNavigate}
-												countFormatter={(count) => formatCompactCount(count, countryCode)}
-											/>
-										</View>
+							<View style={styles.filterPanel}>
+								<View style={styles.tabsInlineRow}>
+									<View style={styles.tabsInlineItem}>
+										<BAIGroupTabs<InventorySellableTabValue>
+											tabs={sellableTabs}
+											value={sellableTabValue}
+											onChange={onSetSellable}
+											disabled={!canNavigate}
+											countFormatter={(count) => formatCompactCount(count, countryCode)}
+										/>
 									</View>
 
-									{showHealthTabs ? (
-										<View style={styles.tabsRowTight}>
-											<BAIGroupTabs<InventoryHealthTabValue>
-												tabs={healthTabs}
-												value={healthTabValue}
-												onChange={onSetHealthTab}
-												disabled={!canNavigate}
-												countFormatter={(count) => formatCompactCount(count, countryCode)}
-											/>
-										</View>
-									) : null}
+									<View style={styles.tabsInlineItem}>
+										<BAIGroupTabs<InventoryStatusTabValue>
+											tabs={statusTabs}
+											value={statusTabValue}
+											onChange={onSetStatus}
+											disabled={!canNavigate}
+											countFormatter={(count) => formatCompactCount(count, countryCode)}
+										/>
+									</View>
 								</View>
-							</BAISurface>
+
+								{showHealthTabs ? (
+									<View style={styles.tabsRowTight}>
+										<BAIGroupTabs<InventoryHealthTabValue>
+											tabs={healthTabs}
+											value={healthTabValue}
+											onChange={onSetHealthTab}
+											disabled={!canNavigate}
+											countFormatter={(count) => formatCompactCount(count, countryCode)}
+										/>
+									</View>
+								) : null}
+							</View>
 						</View>
 					}
 					scrollArea={
@@ -991,7 +985,6 @@ const styles = StyleSheet.create({
 	centerSmall: { padding: 12, alignItems: "center", justifyContent: "center" },
 
 	list: { flex: 1, minHeight: 0 },
-	filterSurface: { marginBottom: 0 },
 	filterPanel: { paddingHorizontal: 12, paddingVertical: 12, gap: 8 },
 	tabsInlineRow: {
 		flexDirection: "row",

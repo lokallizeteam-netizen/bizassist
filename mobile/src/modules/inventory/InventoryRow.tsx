@@ -14,49 +14,11 @@ import {
 	isLowStock,
 	isOutOfStock,
 } from "@/modules/inventory/inventory.selectors";
+import { formatDurationLabel, resolveServiceDurationMinutes } from "@/modules/inventory/services/serviceDuration";
 import type { InventoryProduct } from "@/modules/inventory/inventory.types";
 import { formatMoney } from "@/shared/money/money.format";
 
 const DEFAULT_SERVICE_TILE_COLOR = "#616161";
-
-function normalizePositiveMinutes(value: unknown): number | null {
-	const raw = Number(value);
-	if (!Number.isFinite(raw)) return null;
-	const n = Math.trunc(raw);
-	if (n <= 0) return null;
-	return n;
-}
-
-function formatAbbreviatedDuration(totalMinutes: number): string {
-	const safe = Math.max(0, Math.trunc(totalMinutes));
-	const hours = Math.floor(safe / 60);
-	const minutes = safe % 60;
-
-	if (hours > 0 && minutes > 0) {
-		const hourUnit = hours === 1 ? "hr" : "hrs";
-		const minuteUnit = minutes === 1 ? "min" : "mins";
-		return `${hours} ${hourUnit}, ${minutes} ${minuteUnit}`;
-	}
-	if (hours > 0) {
-		const hourUnit = hours === 1 ? "hr" : "hrs";
-		return `${hours} ${hourUnit}`;
-	}
-	const minuteUnit = minutes === 1 ? "min" : "mins";
-	return `${minutes} ${minuteUnit}`;
-}
-
-function resolveServiceDurationText(item: InventoryProduct): string {
-	const total = normalizePositiveMinutes((item as any)?.durationTotalMinutes);
-	const initial = normalizePositiveMinutes((item as any)?.durationInitialMinutes);
-	const processing = normalizePositiveMinutes((item as any)?.durationProcessingMinutes);
-	const final = normalizePositiveMinutes((item as any)?.durationFinalMinutes);
-	const processingEnabled = Boolean((item as any)?.processingEnabled);
-
-	const totalFromSegments = initial != null && processing != null && final != null ? initial + processing + final : null;
-	const effectiveTotal = processingEnabled ? (totalFromSegments ?? total) : total;
-	if (effectiveTotal == null) return "—";
-	return formatAbbreviatedDuration(effectiveTotal);
-}
 
 export type InventoryRowProps = {
 	item: InventoryProduct;
@@ -150,10 +112,22 @@ function InventoryRowBase({
 		if (rawPrice == null) return "—";
 		return formatMoney({ amount: rawPrice, currencyCode });
 	}, [currencyCode, isServiceItem, item]);
-	const serviceDurationLabel = useMemo(
-		() => (isServiceItem ? resolveServiceDurationText(item) : ""),
-		[isServiceItem, item],
-	);
+	const serviceDurationLabel = useMemo(() => {
+		if (!isServiceItem) return "";
+
+		const resolvedMinutes = resolveServiceDurationMinutes(item);
+		if (resolvedMinutes != null) return formatDurationLabel(resolvedMinutes);
+
+		// Backward-compat fallback for payloads that still expose legacy service duration keys.
+		const legacyDuration = (item as { serviceDurationMins?: unknown; serviceDurationMinutes?: unknown })
+			.serviceDurationMins;
+		const legacyDurationMinutes =
+			legacyDuration ??
+			(item as { serviceDurationMins?: unknown; serviceDurationMinutes?: unknown }).serviceDurationMinutes;
+		const raw = typeof legacyDurationMinutes === "number" ? legacyDurationMinutes : Number(legacyDurationMinutes);
+		if (!Number.isFinite(raw) || raw <= 0) return "";
+		return formatDurationLabel(raw);
+	}, [isServiceItem, item]);
 	const statusLabel = outOfStock ? "Out stock" : low ? "Low stock" : hasThreshold ? "On hand" : "On hand";
 	const rightPrimaryText = isServiceItem ? servicePriceLabel : onHandLabel;
 	const rightSecondaryText = isServiceItem ? serviceDurationLabel : statusLabel;
